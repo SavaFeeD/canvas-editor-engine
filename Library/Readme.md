@@ -1,7 +1,5 @@
 # Canvas 2D library
 
-Sprite creator lib;
-
 Use: [`typescript`] [`canvas`];
 
 ## Requirements
