@@ -1,0 +1,30 @@
+{
+  "name": "canvas-editor-engine",
+  "version": "1.0.1",
+  "description": "CanvasEditorEngine library, use: [typescript] [canvas]",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "test": "node test/test.js",
+    "build": "tsc",
+    "realise": "npm version patch && npm publish"
+  },
+  "keywords": [
+    "typescript",
+    "canvas",
+    "library"
+  ],
+  "author": "SavaFeeD",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.17.10",
+    "@types/node": "^22.7.4",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}

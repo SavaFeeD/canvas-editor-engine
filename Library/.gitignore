@@ -1,0 +1,9 @@
+# build
+dist
+
+# environments
+.env.production
+.env.development
+
+# modules
+node_modules
