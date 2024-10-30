@@ -5,6 +5,7 @@ import { Convert } from "../utils/convert";
 import CanvasComponent from "./canvas.component";
 import ComponentService from "../services/component.service";
 import ToolService from "../services/tool.service";
+import LoggerService from "../services/logger.service";
 
 export default class PipetteComponent extends ComponentService {
   public static template = `
@@ -86,6 +87,13 @@ export default class PipetteComponent extends ComponentService {
 
   static {
     ToolService.add(PipetteComponent.tool);
+    LoggerService.components.add({
+      info: {
+        name: 'pipette', 
+        description: 'pipette component', 
+      },
+      prototype: PipetteComponent,
+    });
   }
 
   public static getComponent() {

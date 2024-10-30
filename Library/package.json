@@ -1,5 +1,5 @@
 {
-  "name": "canvas-editor-engine",
+  "name": "canvas-editor-engine--builder",
   "version": "1.0.0",
   "description": "CanvasEditorEngine library, use: [typescript] [canvas]",
   "main": "./canvas-editor-enginedist/index.js",

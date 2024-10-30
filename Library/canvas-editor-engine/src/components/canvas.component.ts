@@ -2,8 +2,9 @@ import AppConfig from "../config";
 import { TSubscribeAction, TSubscriptions, TSubscriptionTypes } from "../types/canvas";
 import { ICursorPosition, ICursorStyle, TCursorStyleName } from "../types/cursor";
 import ComponentService from "../services/component.service";
+import LoggerService from "../services/logger.service";
 
-export default class CanvasComponent extends ComponentService{
+export default class CanvasComponent extends ComponentService {
   private static template: string = `
     <div id="event-listener"></div>
     <canvas id="sc-canvas"></canvas>
@@ -30,6 +31,16 @@ export default class CanvasComponent extends ComponentService{
   private static _cursorStyle: ICursorStyle = {
     before: null,
     current: 'default',
+  };
+
+  static {
+    LoggerService.components.add({
+      info: {
+        name: 'canvas',
+        description: 'canvas component',
+      },
+      prototype: CanvasComponent,
+    });
   };
 
   public static getComponent() {

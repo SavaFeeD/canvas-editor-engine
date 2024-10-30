@@ -8,6 +8,7 @@ import SlotComponent from "./components/slot.component";
 
 import DrawService from "./services/draw.service";
 import ToolService from "./services/tool.service";
+import LoggerService from "./services/logger.service";
 
 
 class CanvasEditorEngine {
@@ -63,6 +64,7 @@ export {
   // services
   ToolService,
   DrawService,
+  LoggerService,
 
   // general
   StaticCanvasEditorEngine,

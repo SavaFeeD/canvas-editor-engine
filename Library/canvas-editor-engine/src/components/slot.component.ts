@@ -1,4 +1,5 @@
 import ComponentService from "../services/component.service";
+import LoggerService from "../services/logger.service";
 
 export default class SlotComponent extends ComponentService {
   private static template: string = `
@@ -8,6 +9,16 @@ export default class SlotComponent extends ComponentService {
   private static css: string = ``;
 
   public static slot: HTMLSlotElement;
+
+  static {
+    LoggerService.components.add({
+      info: {
+        name: 'slot', 
+        description: 'slot component', 
+      },
+      prototype: SlotComponent,
+    });
+  }
 
   public static getComponent(slotName: string) {
     const wrapOptions = {

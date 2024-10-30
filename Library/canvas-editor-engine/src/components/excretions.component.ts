@@ -12,6 +12,7 @@ import type {
   TExcretionToolState
 } from "../types/excretion";
 import type { ITool } from "../types/general";
+import LoggerService from "../services/logger.service";
 
 export default class ExcretionsComponent extends ComponentService {
   private static template: string = ``;
@@ -56,6 +57,13 @@ export default class ExcretionsComponent extends ComponentService {
 
   static {
     ToolService.add(ExcretionsComponent.tool);
+    LoggerService.components.add({
+      info: {
+        name: 'excretion', 
+        description: 'excretion component', 
+      },
+      prototype: ExcretionsComponent,
+    });
   }
 
   public static getComponent() {
