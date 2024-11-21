@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 
 import ExecutionDelay from 'execution-delay';
 
-import { VueCanvasEditorEngine, DrawService, ToolService, AppConfig } from 'canvas-editor-engine';
+import { VueCanvasEditorEngine, DrawService, ToolService, CropService, AppConfig } from 'canvas-editor-engine';
 import type { IDrawImageArgs } from 'canvas-editor-engine/dist/types/image';
 import type { ITool } from 'canvas-editor-engine/dist/types/general';
 
@@ -21,6 +21,7 @@ const ctx: Ref<CanvasRenderingContext2D | null> = ref(null);
 const qualityList = [1, 2, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 const quality: Ref<number> = ref(0);
 const src: Ref<string | null> = ref(null);
+const isCrop: Ref<boolean> = ref(false);
 
 onMounted(() => {
   //@ts-ignore
@@ -95,6 +96,7 @@ function takeExcretion() {
 function takeCursor() {
   ToolService.offActive();
   clearExecretions();
+  isCrop.value = false;
 }
 
 function clearExecretions() {
@@ -105,6 +107,11 @@ function clearExecretions() {
       excretionTool.support();
     }
   }
+}
+
+function cropExcretion() {
+  CropService.crop();
+  isCrop.value = true;
 }
 </script>
 
@@ -148,6 +155,14 @@ function clearExecretions() {
         <div>
           <button @click="takeExcretion">excreation</button>
         </div>
+        <div>
+          <button
+            @click="cropExcretion"
+            :class="[
+              {'tool-active': isCrop}
+            ]"
+          >crop</button>
+        </div>
       </div>
     </canvas-editor-engine>
   </div>
@@ -189,6 +204,7 @@ canvas-editor-engine {
   border: #555555 1px solid;
   width: calc(100% - 10*2);
   display: flex;
+  cursor: pointer;
 }
 
 .editor__quality_select {
@@ -196,6 +212,7 @@ canvas-editor-engine {
   background-color: #232222;
   border: #555555 1px solid;
   padding: 4px;
+  cursor: pointer;
 }
 
 .editor__quality_select option {
@@ -211,5 +228,10 @@ canvas-editor-engine {
   color: #ffffff64;
   text-align: left;
   padding: 4px;
+  cursor: pointer;
+}
+
+.tool-active {
+  outline: #ffffff 0.5px dashed;
 }
 </style>

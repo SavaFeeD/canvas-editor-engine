@@ -1,10 +1,23 @@
 import { ICanvasSize } from "./types/canvas";
 
-export default class AppConfig {
-  private static _WEB_COMPONENT_TAG_NAME: string = 'canvas-editor-engine';
-  private static _CANVAS_SIZE: ICanvasSize = {
-    width: 300,
-    height: 150,
+export interface IConfigStore {
+  _WEB_COMPONENT_TAG_NAME: string;
+  _CANVAS_SIZE: ICanvasSize;
+}
+
+export class ConfigFabric {
+  protected static _WEB_COMPONENT_TAG_NAME: string;
+  protected static _CANVAS_SIZE: ICanvasSize;
+}
+
+export default class AppConfig extends ConfigFabric {
+
+  static {
+    AppConfig._CANVAS_SIZE = {
+      width: 300,
+      height: 150,
+    };
+    AppConfig._WEB_COMPONENT_TAG_NAME = 'canvas-editor-engine';
   }
 
   static get WEB_COMPONENT_TAG_NAME(): string {

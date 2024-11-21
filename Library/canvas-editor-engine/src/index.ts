@@ -1,6 +1,7 @@
 import AppConfig from "./config";
 
 import WebComponent from "./web-component";
+
 import CanvasComponent from "./components/canvas.component";
 import PipetteComponent from "./components/pipette.component";
 import ExcretionComponent from "./components/excretions.component";
@@ -9,6 +10,7 @@ import SlotComponent from "./components/slot.component";
 import DrawService from "./services/draw.service";
 import ToolService from "./services/tool.service";
 import LoggerService from "./services/logger.service";
+import CropService from "./services/crop.service";
 
 
 class CanvasEditorEngine {
@@ -65,6 +67,7 @@ export {
   ToolService,
   DrawService,
   LoggerService,
+  CropService,
 
   // general
   StaticCanvasEditorEngine,

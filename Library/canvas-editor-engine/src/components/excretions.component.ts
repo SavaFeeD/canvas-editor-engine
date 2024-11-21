@@ -8,14 +8,23 @@ import type {
   IExcretionTempStart,
   TExcretionActivity,
   TExcretionState,
+  TExcretionStyle,
   TExcretionTempCoords,
   TExcretionToolState
 } from "../types/excretion";
 import type { ITool } from "../types/general";
 import LoggerService from "../services/logger.service";
+import CropService from "../services/crop.service";
 
 export default class ExcretionsComponent extends ComponentService {
   private static template: string = ``;
+  
+  private static templateExcretion: string = `
+    <button type="button" class="crop-button">
+      <svg fill="#ffffff" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M426.667 0h106.666v1386.67H1920v106.66H426.667V0zM320 426.667H0v106.666h320V426.667zm320 0v106.666h746.67V1280h106.66V426.667H640zM1493.33 1600h-106.66v320h106.66v-320z"></path> </g></svg>
+    </button>
+  `;
+
   private static css: string = `
     .excretion {
       display: flex;
@@ -25,6 +34,30 @@ export default class ExcretionsComponent extends ComponentService {
       background-size: 8px 1px, 8px 1px, 1px 8px, 1px 8px;
       background-position: left top, right bottom, left bottom, right top;
       animation: border-dance 1s infinite linear;
+    }
+
+    .excretion_crop {
+      box-shadow: 0px 0px 0px calc(100vw + 100vh) #50505070;
+    }
+
+    .crop-button {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      padding: 5px;
+      right: -35px;
+      top: 0;
+      background: #232222;
+      border: 1px solid #ffffff50;
+      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+
+    .crop-button--view {
+      display: flex;
     }
 
     @keyframes border-dance {
@@ -47,12 +80,47 @@ export default class ExcretionsComponent extends ComponentService {
   private static _tempCoords: TExcretionTempCoords = [];
   public static excretionsCoords: IExcretionsCoords[] = []; 
 
+  private static _additionStyle: TExcretionStyle = 'default';
+
+  public static get additionStyle() {
+    return ExcretionsComponent._additionStyle;
+  } 
+
+  public static set additionStyle(value: TExcretionStyle) {
+    ExcretionsComponent._additionStyle = value;
+    ExcretionsComponent.applyExcretionStyle();
+  }
+
+  private static applyExcretionStyle() {
+    if (ExcretionsComponent._additionStyle === 'crop') {
+      ExcretionsComponent._excretions.forEach((excretion) => {
+        if (!!excretion) {
+          if (!excretion.classList.contains('excretion_crop')) {
+            excretion.classList.add("excretion_crop");
+            CropService.viewCropButton();
+          }
+        }
+      });
+    } else {
+      ExcretionsComponent._excretions.forEach((excretion) => {
+        if (!!excretion) {
+          if (excretion.classList.contains('excretion_crop')) {
+            excretion.classList.remove("excretion_crop");
+          }
+        }
+      });
+    }
+  };
+
   private static tool: ITool = {
     id: 1,
     name: 'excretion',
     onAction: () => ExcretionsComponent.setToolState('taken'),
     offAction: () => ExcretionsComponent.setToolState('abandoned'),
-    support: () => ExcretionsComponent.clearExcretionsCoords(),
+    support: () => {
+      ExcretionsComponent.clearExcretionsCoords();
+      ExcretionsComponent.additionStyle = 'default';
+    },
   };
 
   static {
@@ -81,7 +149,7 @@ export default class ExcretionsComponent extends ComponentService {
 
   private static set excretionState(state: TExcretionState) {
     ExcretionsComponent._excretionState = state;
-    
+    ExcretionsComponent.applyExcretionStyle();
     switch(state) {
       case 'abandoned':
         CanvasComponent.cursorStyle = 'default';
@@ -141,6 +209,8 @@ export default class ExcretionsComponent extends ComponentService {
     console.log('ExcretionsComponent.excretionsCoords', ExcretionsComponent.excretionsCoords);
   }
 
+
+
   private static emmit() {
     CanvasComponent.subscribe('mousedown', (event: MouseEvent, cursorPosition: ICursorPosition) => {
       const toolState = ExcretionsComponent._excretionToolState;
@@ -152,7 +222,7 @@ export default class ExcretionsComponent extends ComponentService {
         const wrapOptions = {
           className: 'excretion',
         };
-        const excretionTemplate = ExcretionsComponent.getTemplate('', wrapOptions);
+        const excretionTemplate = ExcretionsComponent.getTemplate(ExcretionsComponent.templateExcretion, wrapOptions);
 
         ExcretionsComponent.clearExcretionsCoords();
 
@@ -175,7 +245,8 @@ export default class ExcretionsComponent extends ComponentService {
         };
         ExcretionsComponent._tempCoords.push(tempStart);
       }
-      
+
+      ExcretionsComponent.applyExcretionStyle();
       ExcretionsComponent._excretionActivity = 'active';
     });
 

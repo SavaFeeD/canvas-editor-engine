@@ -28,3 +28,5 @@ export type TExcretionTempCoords = (IExcretionTempStart | IExcretionTempEnd)[];
 export type TExcretionToolState = 'taken' | 'abandoned';
 export type TExcretionState = 'create' | 'add' | 'remove' | 'abandoned';
 export type TExcretionActivity = 'active' | 'end' | 'abandoned';
+
+export type TExcretionStyle = 'default' | 'crop';
