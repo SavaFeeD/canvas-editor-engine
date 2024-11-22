@@ -15,3 +15,5 @@ export interface ITool {
   offAction?: (...args: any) => void,
   support?: (...args: any) => void,
 };
+
+export type IGUID4 = `${number}-${number}-${number}-${number}`

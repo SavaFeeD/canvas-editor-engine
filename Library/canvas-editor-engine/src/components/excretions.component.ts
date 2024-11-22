@@ -18,12 +18,13 @@ import CropService from "../services/crop.service";
 
 export default class ExcretionsComponent extends ComponentService {
   private static template: string = ``;
-  
+
   private static templateExcretion: string = `
     <button type="button" class="crop-button">
       <svg fill="#ffffff" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M426.667 0h106.666v1386.67H1920v106.66H426.667V0zM320 426.667H0v106.666h320V426.667zm320 0v106.666h746.67V1280h106.66V426.667H640zM1493.33 1600h-106.66v320h106.66v-320z"></path> </g></svg>
     </button>
   `;
+  private static _excretionDefaultStyle: string[] = ['excretion'];
 
   private static css: string = `
     .excretion {
@@ -78,13 +79,13 @@ export default class ExcretionsComponent extends ComponentService {
   private static _excretionToolState: TExcretionToolState = 'abandoned';
 
   private static _tempCoords: TExcretionTempCoords = [];
-  public static excretionsCoords: IExcretionsCoords[] = []; 
+  public static excretionsCoords: IExcretionsCoords[] = [];
 
   private static _additionStyle: TExcretionStyle = 'default';
 
   public static get additionStyle() {
     return ExcretionsComponent._additionStyle;
-  } 
+  }
 
   public static set additionStyle(value: TExcretionStyle) {
     ExcretionsComponent._additionStyle = value;
@@ -92,25 +93,36 @@ export default class ExcretionsComponent extends ComponentService {
   }
 
   private static applyExcretionStyle() {
-    if (ExcretionsComponent._additionStyle === 'crop') {
-      ExcretionsComponent._excretions.forEach((excretion) => {
-        if (!!excretion) {
-          if (!excretion.classList.contains('excretion_crop')) {
-            excretion.classList.add("excretion_crop");
-            CropService.viewCropButton();
-          }
-        }
-      });
-    } else {
-      ExcretionsComponent._excretions.forEach((excretion) => {
-        if (!!excretion) {
-          if (excretion.classList.contains('excretion_crop')) {
-            excretion.classList.remove("excretion_crop");
-          }
-        }
-      });
+    switch(ExcretionsComponent._additionStyle) {
+      case 'crop':
+        ExcretionsComponent.determineCropStyle();
+        break;
+      case 'default':
+        ExcretionsComponent.determineDefaultStyle();
+        break;
+      default:
+        ExcretionsComponent.determineDefaultStyle();
+        break;
     }
   };
+
+  private static determineCropStyle() {
+    ExcretionsComponent._excretions.forEach((excretion) => {
+      if (!!excretion === false) return;
+      if (!excretion.classList.contains('excretion_crop')) {
+        excretion.classList.add("excretion_crop");
+        CropService.viewCropButton();
+      }
+    });
+  }
+
+  private static determineDefaultStyle() {
+    ExcretionsComponent._excretions.forEach((excretion) => {
+      if (!!excretion === false) return;
+      // @ts-ignore
+      excretion.classList = ExcretionsComponent._excretionDefaultStyle;
+    });
+  }
 
   private static tool: ITool = {
     id: 1,
@@ -127,8 +139,8 @@ export default class ExcretionsComponent extends ComponentService {
     ToolService.add(ExcretionsComponent.tool);
     LoggerService.components.add({
       info: {
-        name: 'excretion', 
-        description: 'excretion component', 
+        name: 'excretion',
+        description: 'excretion component',
       },
       prototype: ExcretionsComponent,
     });
@@ -140,7 +152,7 @@ export default class ExcretionsComponent extends ComponentService {
     };
     const excretionsTemplate = ExcretionsComponent.getTemplate(ExcretionsComponent.template, wrapOptions);
     const excretionsStyle = ExcretionsComponent.getStyle(ExcretionsComponent.css);
-    
+
     ExcretionsComponent.excretionWrap = excretionsTemplate;
     ExcretionsComponent.emmit();
 
@@ -150,7 +162,7 @@ export default class ExcretionsComponent extends ComponentService {
   private static set excretionState(state: TExcretionState) {
     ExcretionsComponent._excretionState = state;
     ExcretionsComponent.applyExcretionStyle();
-    switch(state) {
+    switch (state) {
       case 'abandoned':
         CanvasComponent.cursorStyle = 'default';
         break;
@@ -172,7 +184,7 @@ export default class ExcretionsComponent extends ComponentService {
   public static setToolState(toolState: TExcretionToolState) {
     ExcretionsComponent._excretionToolState = toolState;
 
-    switch(toolState) {
+    switch (toolState) {
       case 'abandoned':
         ExcretionsComponent.excretionState = 'abandoned';
         ExcretionsComponent._excretionActivity = 'abandoned';
@@ -209,18 +221,16 @@ export default class ExcretionsComponent extends ComponentService {
     console.log('ExcretionsComponent.excretionsCoords', ExcretionsComponent.excretionsCoords);
   }
 
-
-
   private static emmit() {
     CanvasComponent.subscribe('mousedown', (event: MouseEvent, cursorPosition: ICursorPosition) => {
       const toolState = ExcretionsComponent._excretionToolState;
-      if (toolState === 'abandoned') return; 
+      if (toolState === 'abandoned') return;
 
       const state = ExcretionsComponent._excretionState;
 
       if (state === 'create') {
         const wrapOptions = {
-          className: 'excretion',
+          className: ExcretionsComponent._excretionDefaultStyle[0],
         };
         const excretionTemplate = ExcretionsComponent.getTemplate(ExcretionsComponent.templateExcretion, wrapOptions);
 
@@ -250,11 +260,11 @@ export default class ExcretionsComponent extends ComponentService {
       ExcretionsComponent._excretionActivity = 'active';
     });
 
-    
+
     CanvasComponent.subscribe('mousemove', (event: MouseEvent, cursorPosition: ICursorPosition) => {
       const toolState = ExcretionsComponent._excretionToolState;
-      if (toolState === 'abandoned') return; 
-      
+      if (toolState === 'abandoned') return;
+
       const activity = ExcretionsComponent._excretionActivity;
       if (event.altKey && ExcretionsComponent._excretionState !== 'abandoned') {
         ExcretionsComponent._excretionState = 'add';
@@ -272,10 +282,10 @@ export default class ExcretionsComponent extends ComponentService {
         excretion.style.width = width + 'px';
         excretion.style.height = height + 'px';
 
-        const isRightBottom = cursorPosition.x > excretionX &&  cursorPosition.y > excretionY;
-        const isLeftBottom = cursorPosition.x < excretionX &&  cursorPosition.y > excretionY;
-        const isLeftTop = cursorPosition.x < excretionX &&  cursorPosition.y < excretionY;
-        const isRightTop = cursorPosition.x > excretionX &&  cursorPosition.y < excretionY;
+        const isRightBottom = cursorPosition.x > excretionX && cursorPosition.y > excretionY;
+        const isLeftBottom = cursorPosition.x < excretionX && cursorPosition.y > excretionY;
+        const isLeftTop = cursorPosition.x < excretionX && cursorPosition.y < excretionY;
+        const isRightTop = cursorPosition.x > excretionX && cursorPosition.y < excretionY;
 
         if (isRightBottom) {
           excretion.style.transform = `translateX(0px) translateY(0px)`;
@@ -292,11 +302,11 @@ export default class ExcretionsComponent extends ComponentService {
 
     CanvasComponent.subscribe('mouseup', (event: MouseEvent, cursorPosition: ICursorPosition) => {
       const toolState = ExcretionsComponent._excretionToolState;
-      if (toolState === 'abandoned') return; 
+      if (toolState === 'abandoned') return;
 
       const state = ExcretionsComponent._excretionState;
 
-      if (state === 'abandoned') return; 
+      if (state === 'abandoned') return;
 
       if (state === 'create' || state === 'add') {
         const tempEnd: IExcretionTempEnd = {
