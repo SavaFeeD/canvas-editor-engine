@@ -3,6 +3,7 @@ import { TSubscribeAction, TSubscriptions, TSubscriptionTypes } from "../types/c
 import { ICursorPosition, ICursorStyle, TCursorStyleName } from "../types/cursor";
 import ComponentService from "../services/component.service";
 import LoggerService from "../services/logger.service";
+import ToolLayerService from "../services/tool-layers.service";
 
 export default class CanvasComponent extends ComponentService {
   private static template: string = `
@@ -13,7 +14,7 @@ export default class CanvasComponent extends ComponentService {
   private static css: string = `
     #event-listener {
       position: absolute;
-      z-index: 10000;
+      z-index: ${ToolLayerService.getLayerIndex('normal')};
     }
   `;
 

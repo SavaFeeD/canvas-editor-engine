@@ -15,6 +15,7 @@ import type {
 import type { ITool } from "../types/general";
 import LoggerService from "../services/logger.service";
 import CropService from "../services/crop.service";
+import ToolLayerService from "../services/tool-layers.service";
 
 export default class ExcretionsComponent extends ComponentService {
   private static template: string = ``;
@@ -35,6 +36,7 @@ export default class ExcretionsComponent extends ComponentService {
       background-size: 8px 1px, 8px 1px, 1px 8px, 1px 8px;
       background-position: left top, right bottom, left bottom, right top;
       animation: border-dance 1s infinite linear;
+      z-index: ${ToolLayerService.getLayerIndex('low')};
     }
 
     .excretion_crop {
@@ -55,6 +57,7 @@ export default class ExcretionsComponent extends ComponentService {
       width: 30px;
       height: 30px;
       cursor: pointer;
+      z-index: ${ToolLayerService.getLayerIndex('high')};
     }
 
     .crop-button--view {

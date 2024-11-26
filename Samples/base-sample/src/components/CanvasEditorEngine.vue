@@ -4,7 +4,15 @@ import type { Ref } from 'vue';
 
 import ExecutionDelay from 'execution-delay';
 
-import { VueCanvasEditorEngine, DrawService, ToolService, CropService, AppConfig } from 'canvas-editor-engine';
+import {
+  VueCanvasEditorEngine,
+  AppConfig,
+  DrawService,
+  ToolService,
+  CropService,
+  DownloadService,
+  EventService,
+} from 'canvas-editor-engine';
 import type { IDrawImageArgs } from 'canvas-editor-engine/dist/types/image';
 import type { ITool } from 'canvas-editor-engine/dist/types/general';
 
@@ -22,6 +30,7 @@ const qualityList = [1, 2, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 2
 const quality: Ref<number> = ref(0);
 const src: Ref<string | null> = ref(null);
 const isCrop: Ref<boolean> = ref(false);
+const useStore: Ref<boolean> = ref(true);
 
 onMounted(() => {
   //@ts-ignore
@@ -59,10 +68,13 @@ function setImage(event: Event) {
 function inputQuality(event: Event) {
   const target = event.target as HTMLInputElement;
   quality.value = +target.value;
-  ExecutionDelay.add('draw', () => draw(quality.value), 500);
+  if (!!ctx.value && !!src.value) {
+    EventService.dispatch('loading-start');
+  }
+  ExecutionDelay.add('draw', () => useSmooth(quality.value), 500);
 }
 
-function draw(qualityValue: number) {
+function useSmooth(qualityValue: number) {
   console.log('qualityValue', qualityValue);
   if (!!ctx.value && !!src.value) {
     const options: IDrawImageArgs = {
@@ -71,7 +83,7 @@ function draw(qualityValue: number) {
         y: 0,
       }
     };
-    DrawService.drawSmoothImage(ctx.value, src.value, options, { quality: qualityValue });
+    DrawService.drawSmoothImage(useStore.value, options, { quality: qualityValue });
   }
 }
 
@@ -109,9 +121,20 @@ function clearExecretions() {
   }
 }
 
-function cropExcretion() {
-  CropService.crop();
+function cropSetupExcretion() {
+  CropService.setup();
   isCrop.value = true;
+}
+
+function cropExcretion() {
+  if (!!ctx.value) {
+    CropService.crop(ctx.value);
+    takeCursor();
+  }
+}
+
+function downloadImage() {
+  ExecutionDelay.add('draw', () => DownloadService.download(), 500);
 }
 </script>
 
@@ -119,7 +142,11 @@ function cropExcretion() {
   <div class="editor">
     <canvas-editor-engine ref="editor">
       <div class="tools" slot="tools">
-        <div class="editor__image-input_wrap">
+        <section class="undo-redo">
+          <button class="undo"><- undo</button>
+          <button class="redo">redo -></button>
+        </section>
+        <section class="editor__image-input_wrap">
           <input
             id="Image"
             class="editor__image-input_input"
@@ -135,8 +162,9 @@ function cropExcretion() {
           >
             Load Image
           </label>
-        </div>
-        <div>
+        </section>
+        <section class="legend">
+          <h5>Smooth filter</h5>
           <select
             @change="inputQuality"
             class="editor__quality_select"  
@@ -145,30 +173,77 @@ function cropExcretion() {
               <option :value="qual">Quality: {{ qual }}</option>
             </template>
           </select>
-        </div>
-        <div>
+        </section>
+        <section>
           <button @click="takeCursor">cursor</button>
-        </div>
-        <div>
+        </section>
+        <section>
           <button @click="takePipette">pipette</button>
-        </div>
-        <div>
+        </section>
+        <section>
           <button @click="takeExcretion">excreation</button>
-        </div>
-        <div>
+        </section>
+        <section class="crop">
           <button
-            @click="cropExcretion"
+            @click="cropSetupExcretion"
             :class="[
               {'tool-active': isCrop}
             ]"
-          >crop</button>
-        </div>
+          >
+            crop
+          </button>
+          <button
+            :disabled="!isCrop"
+            @click="cropExcretion"
+            class="temp-action"
+          >
+            apply
+          </button>
+        </section>
+        <section>
+          <button @click="downloadImage">download</button>
+        </section>
       </div>
     </canvas-editor-engine>
   </div>
 </template>
 
 <style>
+.legend {
+  border: #7e7e7e dotted 1px;
+  padding: 5px;
+}
+
+h5 {
+  margin: 0;
+  font-weight: normal;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  color: #7e7e7e;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+section.undo-redo {
+  flex-direction: row;
+  gap: 5px;
+  padding-bottom: 15px;
+}
+section.undo-redo button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+section.crop {
+  display: grid;
+  grid-template-columns: 1fr 0.6fr;
+  gap: 5px;
+}
+
 .editor {
   display: flex;
   justify-content: center;
@@ -229,6 +304,11 @@ canvas-editor-engine {
   text-align: left;
   padding: 4px;
   cursor: pointer;
+}
+
+.tools button:disabled {
+  filter: saturate(17.5);
+  cursor: not-allowed;
 }
 
 .tool-active {

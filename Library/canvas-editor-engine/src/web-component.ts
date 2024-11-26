@@ -1,7 +1,9 @@
 import CanvasComponent from "./components/canvas.component";
 import ExcretionsComponent from "./components/excretions.component";
+import LoadingComponent from "./components/loading.component";
 import PipetteComponent from "./components/pipette.component";
 import SlotComponent from "./components/slot.component";
+import EventService from "./services/event.service";
 import { TComponent } from "./types/general";
 
 export class WebComponentWrapper {
@@ -86,8 +88,9 @@ export class WebComponentWrapper {
 export default class WebComponent extends HTMLElement {
   constructor() {
     super();
-    const shadowRoot = this.attachShadow({ mode: "open" });
     
+    const shadowRoot = this.attachShadow({ mode: "open" });
+
     const webComponentWrapper = new WebComponentWrapper();
 
     const { canvasTemplate, canvasStyle } = CanvasComponent.getComponent();
@@ -102,9 +105,14 @@ export default class WebComponent extends HTMLElement {
     const { excretionsTemplate, excretionsStyle } = ExcretionsComponent.getComponent();
     webComponentWrapper.editorWrap.add(excretionsTemplate, excretionsStyle);
 
+    const { loadingTemplate, loadingStyle } = LoadingComponent.getComponent();
+    webComponentWrapper.editorWrap.add(loadingTemplate, loadingStyle);
+
     shadowRoot.appendChild(webComponentWrapper.baseElement);
 
     CanvasComponent.simulateSubscriptions();
+
+    EventService.applyEvents(webComponentWrapper.baseElement);
 
     this.addEventListener('initial', () => {
       this.dispatchEvent(new CustomEvent('get-editor-element', {

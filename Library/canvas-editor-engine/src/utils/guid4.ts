@@ -1,14 +1,28 @@
 import { IGUID4 } from "../types/general";
 
 export class Guid4 {
-  static stack: IGUID4[] = [];
+  stack: IGUID4[] = [];
   guid4: IGUID4;
 
   constructor() {
-    this.generate(this.attempt);
+    // generateWithFactor not working
+    // this.generateWithFactor(this.attempt);
   }
 
-  private generate(attempt: GenerateAttempt) {
+  public generate() {
+    return this.Guid4;
+  }
+
+  public get finite(): IGUID4 { // not working
+    const guid4 = this.stack[this.stack?.length];
+    if (!!guid4) {
+      return guid4;
+    } else {
+      throw new Error("Guid4 not generate");
+    }
+  };
+
+  private generateWithFactor(attempt: GenerateAttempt) { // not working
     const factor = this.getFactor(this.guid4);
     attempt.use('withError').run(factor);
   }
@@ -16,9 +30,9 @@ export class Guid4 {
   private getFactor(guid4: IGUID4) {
     return (attempt: IAttemptConfig) => {
       guid4 = this.Guid4;
-      if (!Guid4.stack.includes(guid4)) {
+      if (!this.stack.includes(guid4)) {
         attempt.current = attempt.max;
-        Guid4.stack.push(guid4);
+        this.stack.push(guid4);
       }
     }
   }
@@ -54,11 +68,6 @@ export class Guid4 {
     const formattedChar = (char == 'x') ? preformer : (preformer & 0x3 | 0x8);
     return formattedChar.toString(16);
   }
-
-  public get finite(): IGUID4 {
-    const isFound = (item: any) => !!item;
-    return Guid4.stack.findLast(isFound);
-  };
 }
 
 interface IAttemptConfig {

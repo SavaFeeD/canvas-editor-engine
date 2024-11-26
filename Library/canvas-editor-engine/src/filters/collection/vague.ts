@@ -1,6 +1,7 @@
 import type {
   IFilterOptions,
   IImageOptions,
+  IImageSize,
   IPixelPosition,
   TBuff,
   TFilterMethod,
@@ -24,15 +25,18 @@ export default class VagueFilter extends Filter {
   }
 
   public on(action: TFilterMethod, filterOptions: IFilterOptions) {
-    const imageData = this.copy(this.options);
-    const rowImageData = this[action](imageData, filterOptions);
-    this.update(rowImageData, this.options);
+    return new Promise((resolve) => {
+      const imageData = this.copy(this.options);
+      const rowImageData = this[action](imageData, filterOptions);
+      this.update(rowImageData, this.options);
+      return resolve('complite');
+    });
   }
 
   public pixel(imageData: ImageData, filterOptions: IFilterOptions) {
-    const imageSize = {
-      w: imageData.width,
-      h: imageData.height,
+    const imageSize: IImageSize = {
+      width: imageData.width,
+      height: imageData.height,
     };
     this.setImageSize(imageSize);
 
@@ -64,8 +68,8 @@ export default class VagueFilter extends Filter {
   }
 
   private getQualityBuff(buff: TBuff, quality: number) {
-    const wq: number = Math.floor(this.imageSize.w / quality);
-    const hq: number = Math.floor(this.imageSize.h / quality);
+    const wq: number = Math.floor(this.imageSize.width / quality);
+    const hq: number = Math.floor(this.imageSize.height / quality);
 
     const qualityBuff: TQualityBuff = [];
     const rangeCommit: TRangeCommit = [];

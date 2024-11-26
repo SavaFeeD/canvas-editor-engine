@@ -16,4 +16,16 @@ export interface ITool {
   support?: (...args: any) => void,
 };
 
-export type IGUID4 = `${number}-${number}-${number}-${number}`
+export type IGUID4 = `${number}-${number}-${number}-${number}`;
+
+export interface IPosition {
+  x: number;
+  y: number;
+};
+
+export interface ISize {
+  width: number;
+  height: number;
+}
+
+export type TStringMatrix = string[][];

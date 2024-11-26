@@ -6,12 +6,15 @@ import CanvasComponent from "./components/canvas.component";
 import PipetteComponent from "./components/pipette.component";
 import ExcretionComponent from "./components/excretions.component";
 import SlotComponent from "./components/slot.component";
+import LoadingComponent from "./components/loading.component";
 
 import DrawService from "./services/draw.service";
 import ToolService from "./services/tool.service";
 import LoggerService from "./services/logger.service";
 import CropService from "./services/crop.service";
-
+import DownloadService from "./services/download.service";
+import ToolLayerService from "./services/tool-layers.service";
+import EventService from "./services/event.service";
 
 class CanvasEditorEngine {
   constructor(webComponentTagName?: string) {
@@ -62,12 +65,16 @@ export {
   CanvasComponent,
   ExcretionComponent,
   SlotComponent,
+  LoadingComponent,
 
   // services
   ToolService,
   DrawService,
   LoggerService,
   CropService,
+  DownloadService,
+  ToolLayerService,
+  EventService,
 
   // general
   StaticCanvasEditorEngine,

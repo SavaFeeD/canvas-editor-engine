@@ -3,45 +3,34 @@ import { Guid4 } from "../utils/guid4";
 
 export abstract class ControlEvent {
   name: string;
-  action: (args?: any) => Event;
+  action: (args?: any) => any;
 }
 
 export class EventAtom implements ControlEvent {
   id: IGUID4;
   name: string;
-  action: (args?: any) => Event;
+  action: (args?: any) => any;
 }
 
-export abstract class AbstractEvent {
-  eventList: EventAtom[];
-  abstract subcribe(event: EventAtom): void;
-  abstract dispatch(name: ControlEvent['name'], eventArgs?: any): void;
-  abstract applyEvents(baseElement: HTMLDivElement): void;
-}
+export default class EventService {
+  public static eventList: EventAtom[] = [];
 
-export class EventService implements AbstractEvent {
-  eventList: EventAtom[];
-
-  constructor(
-    private baseElement: HTMLDivElement
-  ) { }
-
-  subcribe(controlEvent: ControlEvent) {
+  public static subcribe(controlEvent: ControlEvent) {
     const eventAtom: EventAtom = {
-      id: new Guid4().finite,
+      id: new Guid4().generate(),
       ...controlEvent
     }
-    this.eventList.push(eventAtom);
+    EventService.eventList.push(eventAtom);
   }
   
-  dispatch(name: ControlEvent['name'], eventArgs?: any) {
-    const eventAtom = this.eventList.find((event) => event.name === name);
+  public static dispatch(name: ControlEvent['name'], eventArgs?: any) {
+    const eventAtom = EventService.eventList.find((event) => event.name === name);
     eventAtom.action(eventArgs);
   }
 
-  applyEvents() {
-    this.eventList.forEach((event) => {
-      this.baseElement.addEventListener(event.name, event.action);
+  public static applyEvents(baseElement: HTMLDivElement) {
+    EventService.eventList?.forEach((event) => {
+      baseElement.addEventListener(event.name, event.action);
     });
   }
 }

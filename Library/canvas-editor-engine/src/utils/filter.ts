@@ -25,6 +25,7 @@ export class Filter {
   }
 
   public update(imgData: ImageData, options: IImageOptions) {
+    this.ctx.clearRect(0, 0, AppConfig.CANVAS_SIZE.width, AppConfig.CANVAS_SIZE.height);
     this.ctx.putImageData(imgData, options.x, options.y);
   }
 
@@ -41,7 +42,7 @@ export class Filter {
 
 
   private getBuff(hexBuff: THEXColor[]): TBuff {
-    const distanceRow: number[] = range(0, this.imageSize.h).map((i) => this.imageSize.w * i);
+    const distanceRow: number[] = range(0, this.imageSize.height).map((i) => this.imageSize.width * i);
 
     const buff: TBuff = [];
     let indexOfDistance = 0;

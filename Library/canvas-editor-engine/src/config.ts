@@ -1,13 +1,20 @@
 import { ICanvasSize } from "./types/canvas";
 
-export interface IConfigStore {
-  _WEB_COMPONENT_TAG_NAME: string;
-  _CANVAS_SIZE: ICanvasSize;
+export interface ILayer {
+  name: string;
+  index: number;
+};
+
+export abstract class ConfigStore {
+  static _WEB_COMPONENT_TAG_NAME: string;
+  static _CANVAS_SIZE: ICanvasSize;
+  static _LAYERS: ILayer[];
 }
 
-export class ConfigFabric {
+export class ConfigFabric implements ConfigStore{
   protected static _WEB_COMPONENT_TAG_NAME: string;
   protected static _CANVAS_SIZE: ICanvasSize;
+  protected static _LAYERS: ILayer[];
 }
 
 export default class AppConfig extends ConfigFabric {
@@ -18,6 +25,20 @@ export default class AppConfig extends ConfigFabric {
       height: 150,
     };
     AppConfig._WEB_COMPONENT_TAG_NAME = 'canvas-editor-engine';
+    AppConfig._LAYERS = [
+      {
+        name: 'low',
+        index: 1,
+      },
+      {
+        name: 'normal',
+        index: 2,
+      },
+      {
+        name: 'high',
+        index: 3,
+      }
+    ];
   }
 
   static get WEB_COMPONENT_TAG_NAME(): string {
@@ -39,6 +60,16 @@ export default class AppConfig extends ConfigFabric {
       AppConfig._CANVAS_SIZE = value;
     } else {
       console.warn('CANVAS_SIZE denied');
+    }
+  }
+
+  static get LAYERS(): ILayer[] {
+    return AppConfig._LAYERS;
+  }
+
+  static set LAYERS(value: ILayer[]) {
+    if (!!value && !!value?.length) {
+      AppConfig._LAYERS = value;
     }
   }
 }
