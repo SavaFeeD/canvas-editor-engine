@@ -15,18 +15,18 @@ export default class CropService {
     
     const filter = new Filter(ctx);
     const options = CropService.options;
-    const imageData = filter.copy(options);
-    const putOptions = {
-      x: (AppConfig.CANVAS_SIZE.width / 2) - (options.width / 2),
-      y: (AppConfig.CANVAS_SIZE.height / 2) - (options.height / 2),
+    const { imageData, size } = filter.copyExtendedModel(options);
+    const position = {
+      x: (AppConfig.CANVAS_SIZE.width / 2) - (size.width / 2),
+      y: (AppConfig.CANVAS_SIZE.height / 2) - (size.height / 2),
     }
-    filter.update(imageData, putOptions);
+    filter.update(imageData, position);
     AppStore.store.imageState.reduce({
       tempImageData: imageData,
-      position: putOptions,
+      position: position,
       size: {
-        width: options.width,
-        height: options.height,
+        width: size.width,
+        height: size.height,
       }
     }, "Use crop");
   }

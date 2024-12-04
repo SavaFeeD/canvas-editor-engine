@@ -1,5 +1,6 @@
 import type {
   IFilterOptions,
+  IImageLoggingDataVague,
   IImageOptions,
   IImageSize,
   IPixelPosition,
@@ -24,12 +25,24 @@ export default class VagueFilter extends Filter {
     this.options = options;
   }
 
-  public on(action: TFilterMethod, filterOptions: IFilterOptions) {
+  public on(action: TFilterMethod, filterOptions: IFilterOptions): Promise<IImageLoggingDataVague> {
     return new Promise((resolve) => {
-      const imageData = this.copy(this.options);
+      const options = this.options;
+      const imageData = this.copy(options);
       const rowImageData = this[action](imageData, filterOptions);
-      this.update(rowImageData, this.options);
-      return resolve('complite');
+      this.update(rowImageData, options);
+      return resolve({
+        imageData: rowImageData,
+        position: {
+          x: options.x,
+          y: options.y,
+        },
+        size: {
+          width: rowImageData.width,
+          height: rowImageData.height,
+        },
+        quality: filterOptions.quality,
+      });
     });
   }
 
@@ -67,7 +80,7 @@ export default class VagueFilter extends Filter {
     return imageData;
   }
 
-  private getQualityBuff(buff: TBuff, quality: number) {
+  private getQualityBuff(buff: TBuff<string>, quality: number) {
     const wq: number = Math.floor(this.imageSize.width / quality);
     const hq: number = Math.floor(this.imageSize.height / quality);
 
@@ -113,7 +126,7 @@ export default class VagueFilter extends Filter {
   }
 
   private getMostCommonQuanlityBuff(qualityBuff: TQualityBuff, rangeCommit: TRangeCommit) {
-    const mostCommonQuanlityBuff: TBuff = [];
+    const mostCommonQuanlityBuff: TBuff<string> = [];
 
     const qualityBuffWithMostCommonElement = qualityBuff.map((newPixel) => {
       const color = this.getMostCommonElement(newPixel);

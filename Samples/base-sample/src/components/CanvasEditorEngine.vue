@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import type { Ref } from 'vue';
 
 import ExecutionDelay from 'execution-delay';
@@ -12,6 +12,8 @@ import {
   CropService,
   DownloadService,
   EventService,
+  AppStore,
+  ThroughHistoryService,
 } from 'canvas-editor-engine';
 import type { IDrawImageArgs } from 'canvas-editor-engine/dist/types/image';
 import type { ITool } from 'canvas-editor-engine/dist/types/general';
@@ -31,6 +33,11 @@ const quality: Ref<number> = ref(0);
 const src: Ref<string | null> = ref(null);
 const isCrop: Ref<boolean> = ref(false);
 const useStore: Ref<boolean> = ref(true);
+const history: Ref<{data: { stateName: string, view: string }[]}> = ref({
+  data: [],
+});
+const historyView = computed(() => history.value.data);
+const historyModalIsOpen: Ref<boolean> = ref(false);
 
 onMounted(() => {
   //@ts-ignore
@@ -40,6 +47,14 @@ onMounted(() => {
     ctx.value = canvas.getContext("2d");
   });
   editor.value?.dispatchEvent(new Event('initial'));
+ 
+  AppStore.subscribe('history', (historyLines: { stateName: string, view: string }[]) => {
+    history.value.data = historyLines;
+    setTimeout(() => {
+      history.value.data.push({ stateName: '', view: '' });
+      history.value.data.pop();
+    }, 100);
+  });
 });
 
 function setImage(event: Event) {
@@ -134,77 +149,110 @@ function cropExcretion() {
 }
 
 function downloadImage() {
-  ExecutionDelay.add('draw', () => DownloadService.download(), 500);
+  ExecutionDelay.add('download', () => DownloadService.download(), 500);
+}
+
+function undo() {
+  if (!!ctx.value) {
+    ThroughHistoryService.undo(ctx.value);
+  }
+}
+
+function redo() {
+  if (!!ctx.value) {
+    ThroughHistoryService.redo(ctx.value);
+  }
 }
 </script>
 
 <template>
   <div class="editor">
-    <canvas-editor-engine ref="editor">
-      <div class="tools" slot="tools">
-        <section class="undo-redo">
-          <button class="undo"><- undo</button>
-          <button class="redo">redo -></button>
-        </section>
-        <section class="editor__image-input_wrap">
-          <input
-            id="Image"
-            class="editor__image-input_input"
-            name="image"
-            type="file"
-            accept="image/*"
-            @change="setImage"
-            capture
-          />
-          <label
-            for="Image"
-            class="editor__image-input_label"
-          >
-            Load Image
-          </label>
-        </section>
-        <section class="legend">
-          <h5>Smooth filter</h5>
-          <select
-            @change="inputQuality"
-            class="editor__quality_select"  
-          >
-            <template v-for="qual in qualityList">
-              <option :value="qual">Quality: {{ qual }}</option>
-            </template>
-          </select>
-        </section>
-        <section>
-          <button @click="takeCursor">cursor</button>
-        </section>
-        <section>
-          <button @click="takePipette">pipette</button>
-        </section>
-        <section>
-          <button @click="takeExcretion">excreation</button>
-        </section>
-        <section class="crop">
-          <button
-            @click="cropSetupExcretion"
-            :class="[
-              {'tool-active': isCrop}
-            ]"
-          >
-            crop
-          </button>
-          <button
-            :disabled="!isCrop"
-            @click="cropExcretion"
-            class="temp-action"
-          >
-            apply
-          </button>
-        </section>
-        <section>
-          <button @click="downloadImage">download</button>
-        </section>
-      </div>
-    </canvas-editor-engine>
+    <div class="wrapper">
+      <div id="modals"></div>
+      <canvas-editor-engine ref="editor">
+        <div class="tools" slot="tools">
+          <section class="undo-redo">
+            <button class="undo" @click="undo" :disabled="historyView.length <= 1"><- undo</button>
+            <button class="redo" @click="redo">redo -></button>
+          </section>
+          <section class="history">
+            <button @click="() => historyModalIsOpen = !historyModalIsOpen">history {{ (!historyModalIsOpen) ? ">" : "<" }}</button>
+            <teleport defer to="#modals">
+              <transition>
+                <div
+                  class="modal"
+                  v-show="historyModalIsOpen"
+                >
+                  <span>history:</span>
+                  <ul>
+                    <template v-for="(item, i) in historyView" >
+                      <li :key="i+item.stateName" v-if="item.stateName !== ''">{{ item.view }}</li>
+                    </template>
+                  </ul>
+                </div>
+              </transition>
+            </teleport>
+          </section>
+          <section class="editor__image-input_wrap">
+            <input
+              id="Image"
+              class="editor__image-input_input"
+              name="image"
+              type="file"
+              accept="image/*"
+              @change="setImage"
+              capture
+            />
+            <label
+              for="Image"
+              class="editor__image-input_label"
+            >
+              Load Image
+            </label>
+          </section>
+          <section class="legend">
+            <h5>Smooth filter</h5>
+            <select
+              @change="inputQuality"
+              class="editor__quality_select"  
+            >
+              <template v-for="qual in qualityList">
+                <option :value="qual">Quality: {{ qual }}</option>
+              </template>
+            </select>
+          </section>
+          <section>
+            <button @click="takeCursor">cursor</button>
+          </section>
+          <section>
+            <button @click="takePipette">pipette</button>
+          </section>
+          <section>
+            <button @click="takeExcretion">excreation</button>
+          </section>
+          <section class="crop">
+            <button
+              @click="cropSetupExcretion"
+              :class="[
+                {'tool-active': isCrop}
+              ]"
+            >
+              crop
+            </button>
+            <button
+              :disabled="!isCrop"
+              @click="cropExcretion"
+              class="temp-action"
+            >
+              apply
+            </button>
+          </section>
+          <section>
+            <button @click="downloadImage">download</button>
+          </section>
+        </div>
+      </canvas-editor-engine>
+    </div>    
   </div>
 </template>
 
@@ -245,13 +293,15 @@ section.crop {
 }
 
 .editor {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-canvas-editor-engine {
+.wrapper {
   background-color: #232222;
+  position: relative;
 }
 
 .tools {
@@ -313,5 +363,41 @@ canvas-editor-engine {
 
 .tool-active {
   outline: #ffffff 0.5px dashed;
+}
+
+.modal {
+  position: absolute;
+  padding: 10px;
+  width: 190px;
+  right: -215px;
+  background-color: #181717;
+  border: #555555 1px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+li {
+  list-style: none;
+  margin: 0;
+  padding: 3px;
+  border: #7e7e7e 1px solid;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>

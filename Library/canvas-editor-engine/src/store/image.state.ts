@@ -1,10 +1,17 @@
 import { StateService } from "../services/store.service";
 import { IPosition, ISize } from "../types/general";
+import AppStore from "./store";
 
 export interface IImageState {
   position: IPosition;
   size: ISize;
   tempImageData: ImageData | null;
+};
+
+export interface IImageStateReduce {
+  position?: IImageState['position'];
+  size?: IImageState['size'];
+  tempImageData?: IImageState['tempImageData'];
 };
 
 export class ImageState implements StateService {
@@ -32,30 +39,39 @@ export class ImageState implements StateService {
     this.reset();
   }
 
-  reduce(payload: IImageState, title?: string) {
+  reduce(payload: IImageStateReduce, title?: string) {
     let isUpdate = false;
 
-    if (!!payload.position) {
+    if (!!payload?.position) {
       this._position = payload.position;
     }
-    if (!!payload.size) {
+    if (!!payload?.size) {
       this._size = payload.size;
     }
-    if (!!payload.tempImageData) {
+    if (!!payload?.tempImageData) {
       this._tempImageData = payload.tempImageData;
       isUpdate = true;
     }
 
     if (isUpdate) {
-      this.addToHistory(`${title || "reduce"}`);
+      this.addToHistory(`${title || "reduce image"}`);
     }
   }
 
   reset() {
-    this.reduce(this.default);
+    this.reduce(this.default, "reset to default");
   }
 
   addToHistory(title: string) {
-    console.log(title, this._tempImageData);
+    const stateValue = {
+      position: this._position,
+      size: this._size,
+      tempImageData: this._tempImageData,
+    }
+    AppStore.store.historyState.reduce('UPDATE_HISTORY', {
+      view: title,
+      stateName: 'image',
+      stateValue,
+    });
   }
 }

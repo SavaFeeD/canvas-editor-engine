@@ -1,7 +1,8 @@
 import AppConfig from "../config";
 import { VagueFilter } from "../filters";
 import AppStore from "../store/store";
-import type { IDrawImageArgs, IFilterOptions, IImageOptions } from "../types/image";
+import type { IDrawImageArgs, IFilterOptions, IImageLoggingDataVague, IImageOptions } from "../types/image";
+import { Filter } from "../utils/filter";
 import EventService from "./event.service";
 
 
@@ -10,15 +11,36 @@ export default class DrawService {
 
   public static drawImage(ctx: CanvasRenderingContext2D, src: string, options: IDrawImageArgs) {
     DrawService.scImage = new SCImage(src, ctx);
-    DrawService.scImage.draw(options);
+    DrawService.scImage.draw(options).then(() => {
+      const filter = new Filter(ctx);
+      const zeroPosition = {
+        x: 0,
+        y: 0,
+      };
+      const imageData = filter.copy(zeroPosition);
+      AppStore.store.imageState.reduce({
+        tempImageData: imageData,
+        position: zeroPosition,
+        size: AppConfig.CANVAS_SIZE,
+      }, "Loaded image");
+    });
   }
 
   public static drawSmoothImage(useStore: boolean, options: IDrawImageArgs, filterOptions: IFilterOptions) {
     const filterArgs: IImageOptions = DrawService.getFilterArgs(useStore, options);
     EventService.dispatch('loading-start');
-    this.scImage.vague(filterArgs, filterOptions).finally(() => {
-      EventService.dispatch('loading-end');
-    });
+    this.scImage.vague(filterArgs, filterOptions)
+      .then(DrawService.updateImageStateAfterVague)
+      .finally(() => EventService.dispatch('loading-end'));
+  }
+
+  private static updateImageStateAfterVague(data: IImageLoggingDataVague) {
+    const { imageData, position, size, quality } = data;
+    AppStore.store.imageState.reduce({
+      tempImageData: imageData,
+      position: position,
+      size: size,
+    }, `[Filter Vague] quality: ${quality}`);
   }
 
   private static getFilterArgs(useStore: boolean, options: IDrawImageArgs) {

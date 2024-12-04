@@ -12,7 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "canvas-editor-engine": "^1.0.74",
+    "canvas-editor-engine": "^1.1.15",
     "execution-delay": "^1.0.2",
     "pinia": "^2.2.4",
     "vue": "^3.4.29",

@@ -15,6 +15,10 @@ import CropService from "./services/crop.service";
 import DownloadService from "./services/download.service";
 import ToolLayerService from "./services/tool-layers.service";
 import EventService from "./services/event.service";
+import ThroughHistoryService from "./services/through-history.service";
+
+import AppStore from "./store/store";
+
 
 class CanvasEditorEngine {
   constructor(webComponentTagName?: string) {
@@ -75,8 +79,12 @@ export {
   DownloadService,
   ToolLayerService,
   EventService,
+  ThroughHistoryService,
 
   // general
   StaticCanvasEditorEngine,
   VueCanvasEditorEngine,
+
+  // store
+  AppStore,
 };
