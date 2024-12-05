@@ -31,6 +31,7 @@ export default class VagueFilter extends Filter {
     return new Promise((resolve) => {
       const options = this.options;
       const imageData = this.copy(options);
+      // TODO: rewrite on pattern Strategies
       const rowImageData = this[action](imageData, filterOptions);
       this.update(rowImageData, options);
       return resolve({
@@ -52,7 +53,10 @@ export default class VagueFilter extends Filter {
     const { quality } = filterOptions;
     console.log('quality', quality);
 
+    // expansion strategy
     const processedImageData = this.getQualityProcessedRemainder(imageData, +quality);
+
+    // TODO: add compression strategy and use register strategies;
 
     const imageSize: IImageSize = {
       width: processedImageData.width,
