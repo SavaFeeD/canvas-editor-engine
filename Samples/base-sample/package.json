@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.17.13",
-    "canvas-editor-engine": "^1.1.18",
+    "canvas-editor-engine": "^1.1.22",
     "execution-delay": "^1.0.2",
     "lodash": "^4.17.21",
     "pinia": "^2.2.4",

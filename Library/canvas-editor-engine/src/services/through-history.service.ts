@@ -22,7 +22,7 @@ export default class ThroughHistoryService {
     const current = ThroughHistoryService.current();
     const prev = ThroughHistoryService.prev();
     if (!!current?.stateValue) {
-      ThroughHistoryService.cache.push(current);
+      ThroughHistoryService.cache.unshift(current);
       AppStore.store.historyState.reduce('UNDO');
       if (prev?.stateValue) {
         ThroughHistoryService.updateCanvas(ctx, prev.stateValue);
