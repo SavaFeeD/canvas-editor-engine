@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import type { Ref } from 'vue';
 
 import ExecutionDelay from 'execution-delay';
@@ -17,6 +17,7 @@ import {
 } from 'canvas-editor-engine';
 import type { IDrawImageArgs } from 'canvas-editor-engine/dist/types/image';
 import type { ITool } from 'canvas-editor-engine/dist/types/general';
+import { range } from 'lodash';
 
 const editor: Ref<HTMLElement | null> = ref(null);
 
@@ -28,7 +29,7 @@ customElements.define(initial.tag, initial.component);
 
 const ctx: Ref<CanvasRenderingContext2D | null> = ref(null);
 
-const qualityList = [1, 2, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+const qualityList = range(0, 20);
 const quality: Ref<number> = ref(0);
 const src: Ref<string | null> = ref(null);
 const isCrop: Ref<boolean> = ref(false);
@@ -81,25 +82,25 @@ function setImage(event: Event) {
 }
 
 function inputQuality(event: Event) {
-  const target = event.target as HTMLInputElement;
-  quality.value = +target.value;
-  if (!!ctx.value && !!src.value) {
+  if (!!src.value) {
+    const target = event.target as HTMLInputElement;
+    quality.value = +target.value;
     EventService.dispatch('loading-start');
+    ExecutionDelay.add('draw', () => {
+      useSmooth(quality.value)
+    }, 500);
   }
-  ExecutionDelay.add('draw', () => useSmooth(quality.value), 500);
 }
 
 function useSmooth(qualityValue: number) {
   console.log('qualityValue', qualityValue);
-  if (!!ctx.value && !!src.value) {
-    const options: IDrawImageArgs = {
-      position: {
-        x: 0,
-        y: 0,
-      }
-    };
-    DrawService.drawSmoothImage(useStore.value, options, { quality: qualityValue });
-  }
+  const options: IDrawImageArgs = {
+    position: {
+      x: 0,
+      y: 0,
+    }
+  };
+  DrawService.drawSmoothImage(useStore.value, options, { quality: qualityValue });
 }
 
 function takePipette() {

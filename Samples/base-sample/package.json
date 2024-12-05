@@ -12,8 +12,10 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "canvas-editor-engine": "^1.1.15",
+    "@types/lodash": "^4.17.13",
+    "canvas-editor-engine": "^1.1.18",
     "execution-delay": "^1.0.2",
+    "lodash": "^4.17.21",
     "pinia": "^2.2.4",
     "vue": "^3.4.29",
     "vue-router": "^4.4.5"

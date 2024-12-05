@@ -72,7 +72,7 @@ export class Filter {
   }
 
   public getSizeOfSparseMatrix(RGBAMatrix: TBuff<number[]>, tempSize: ISize) {
-    // case 1: Xcanvas -> Ximage && case 3: Ycanvas -> Yimage
+    // case 1: Xcanvas -> Ximage && Ycanvas -> Yimage
     let leftIndex: number | undefined;
     let upIndex: number | undefined;
     for (const [iy, row] of RGBAMatrix.entries()) {
@@ -88,10 +88,8 @@ export class Filter {
         break;
       }
     }
-    console.log('case 1: Xcanvas -> Ximage; leftIndex:', leftIndex);
-    console.log('case 3: Ycanvas -> Yimage; upIndex:', upIndex);
     
-    // case 2: Ximage <- Xcanvas && case 4: Yimage <- Ycanvas
+    // case 2 reverse matrix: Ximage <- Xcanvas && Yimage <- Ycanvas
     let rightIndex: number | undefined;
     let downIndex: number | undefined;
     for (const [iy, row] of RGBAMatrix.reverse().entries()) {
@@ -107,8 +105,6 @@ export class Filter {
         break;
       }
     }
-    console.log('case 2: Ximage <- Xcanvas; rightIndex:', rightIndex);
-    console.log('case 4: Yimage <- Ycanvas; downIndex:', downIndex);
 
     const reduceWidth = (tempWidth: ISize['width']) => tempWidth - (leftIndex + rightIndex);
     const reduceHeight = (tempHeight: ISize['height']) => tempHeight - (upIndex + downIndex);
@@ -133,7 +129,7 @@ export class Filter {
   }
 
 
-  private getBuff(hexBuff: THEXColor[]): TBuff<string> {
+  public getBuff(hexBuff: THEXColor[]): TBuff<string> {
     const distanceRow: number[] = range(0, this.imageSize.height).map((i) => this.imageSize.width * i);
 
     const buff: TBuff<string> = [];
@@ -148,7 +144,7 @@ export class Filter {
     return buff;
   }
 
-  private getRGBAMatrix(RGBABuff: TRGBABuff, size?: ISize): TBuff<number[]> {
+  public getRGBAMatrix(rowRGBABuff: TRGBABuff, size?: ISize): TBuff<number[]> {
     const maybeSize: ISize = {
       width: size.width || this.imageSize.width,
       height: size.height || this.imageSize.height,
@@ -157,7 +153,7 @@ export class Filter {
 
     const buff: TBuff<number[]> = [];
     let indexOfDistance = 0;
-    RGBABuff.forEach((pxRGBA, pxIndex) => {
+    rowRGBABuff.forEach((pxRGBA, pxIndex) => {
       if (pxIndex >= distanceRow[indexOfDistance+1]) {
         indexOfDistance++;
       }
@@ -167,7 +163,7 @@ export class Filter {
     return buff;
   }
 
-  private getRowRGBABuff(imageData: ImageData): TRGBABuff {
+  public getRowRGBABuff(imageData: ImageData): TRGBABuff {
     const rowRGBABuff: TRGBABuff = []; // [ [0, 0, 0, 0], [0, 0, 0, 0], ... ]
 
     let colorIndx: number = 0;

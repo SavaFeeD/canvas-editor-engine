@@ -7,13 +7,15 @@ import type {
   TBuff,
   TFilterMethod,
   TQualityBuff,
-  TRangeCommit
+  TRangeCommit,
+  TRGBABuff
 } from "../../types/image";
 
 import { Filter } from "../../utils/filter";
 
 import { Convert } from "../../utils/convert";
 import { range } from 'lodash';
+import { ISize } from "../../types/general";
 
 
 export default class VagueFilter extends Filter {
@@ -47,16 +49,19 @@ export default class VagueFilter extends Filter {
   }
 
   public pixel(imageData: ImageData, filterOptions: IFilterOptions) {
-    const imageSize: IImageSize = {
-      width: imageData.width,
-      height: imageData.height,
-    };
-    this.setImageSize(imageSize);
-
     const { quality } = filterOptions;
     console.log('quality', quality);
+
+    const processedImageData = this.getQualityProcessedRemainder(imageData, +quality);
+
+    const imageSize: IImageSize = {
+      width: processedImageData.width,
+      height: processedImageData.height,
+    };
+    console.log('imageSize', imageSize);
+    this.setImageSize(imageSize);
     
-    const { rowRGBABuff, buff } = this.getBuffCollection(imageData);
+    const { rowRGBABuff, buff } = this.getBuffCollection(processedImageData);
     const { qualityBuff, rangeCommit } = this.getQualityBuff(buff, +quality);
 
     const qualityBuffWithMostCommonElement = this.getMostCommonQuanlityBuff(qualityBuff, rangeCommit);
@@ -72,12 +77,46 @@ export default class VagueFilter extends Filter {
       const rowBuff = occurrenceRGBAbuff.flat();
 
       rowBuff.forEach((color, index) => {
-        imageData.data[index] = color;
+        processedImageData.data[index] = color;
       });
-      console.log('imageData', imageData);
     }
 
-    return imageData;
+    return processedImageData;
+  }
+
+  private getQualityProcessedRemainder(imageData: ImageData, quality: number) {
+    const rowRGBABuff: TRGBABuff = this.getRowRGBABuff(imageData);
+    const RGBAMatrix = this.getRGBAMatrix(rowRGBABuff, { width: imageData.width, height: imageData.height });
+
+    const cqx = quality - (imageData.width % quality);
+    const cqy = quality - (imageData.height % quality);
+
+    const xCommit = range(0, cqx);
+    const yCommit = range(0, cqy);
+
+    const tempSize: ISize = {
+      width: imageData.width + cqx,
+      height: imageData.height + cqy,
+    };
+
+    const xLastIndex = RGBAMatrix[0].length - 1;
+    RGBAMatrix.forEach((row, y) => {
+      const xLastRGBAByte = row[xLastIndex];
+      xCommit.forEach(() => RGBAMatrix[y].push(xLastRGBAByte));
+    });
+
+    const yLastIndex = RGBAMatrix.length - 1;
+    const yLastRGBARow = RGBAMatrix[yLastIndex];
+    yCommit.forEach(() => RGBAMatrix.push(yLastRGBARow));
+
+    const buffWithRemainder = RGBAMatrix.flat(2);
+
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    const tempImageData = tempCtx.createImageData(tempSize.width, tempSize.height);
+
+    buffWithRemainder.forEach((_, i) => tempImageData.data[i] = buffWithRemainder[i]);
+    return tempImageData;
   }
 
   private getQualityBuff(buff: TBuff<string>, quality: number) {
