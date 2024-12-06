@@ -55,3 +55,8 @@ export interface IImageLoggingData {
 }
 
 export interface IImageLoggingDataVague extends IImageLoggingData, IFilterOptions {}
+
+export interface IDrawImageProcessor {
+  draw(options?: IDrawImageArgs): Promise<any>;
+  vague(options: IImageOptions, filterOptions: IFilterOptions): Promise<IImageLoggingDataVague>;
+}

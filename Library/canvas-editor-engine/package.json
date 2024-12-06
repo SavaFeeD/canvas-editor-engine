@@ -1,6 +1,6 @@
 {
   "name": "canvas-editor-engine",
-  "version": "1.1.22",
+  "version": "1.2.1",
   "description": "CanvasEditorEngine library, use: [typescript] [canvas]",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

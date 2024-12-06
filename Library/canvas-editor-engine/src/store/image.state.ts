@@ -62,6 +62,14 @@ export class ImageState implements StateService {
     this.reduce(this.default, "reset to default");
   }
 
+  getEntry() {
+    return {
+      position: this._position,
+      size: this._size,
+      imageData: this._tempImageData,
+    };
+  }
+
   addToHistory(title: string) {
     const stateValue = {
       position: this._position,

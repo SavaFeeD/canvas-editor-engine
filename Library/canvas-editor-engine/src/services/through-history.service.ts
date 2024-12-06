@@ -1,6 +1,7 @@
 import AppStore from "../store/store";
 import { IPosition } from "../types/general";
 import { IHistoryLine } from "../types/history";
+import { Project } from "../types/project";
 import { Filter } from "../utils/filter";
 
 export default class ThroughHistoryService {
@@ -40,6 +41,11 @@ export default class ThroughHistoryService {
 
   public static clearCache() {
     ThroughHistoryService.cache = [];
+  }
+
+  public static recovery(project: Project) {
+    AppStore.store.historyState.reduce('SET_HISTORY', { historyLines: project.state.history});
+    ThroughHistoryService.cache = project.state.cache;
   }
 
   private static updateCanvas(ctx: CanvasRenderingContext2D, stateValue: IHistoryLine['stateValue']) {

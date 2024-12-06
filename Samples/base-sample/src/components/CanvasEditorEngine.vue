@@ -14,6 +14,8 @@ import {
   EventService,
   AppStore,
   ThroughHistoryService,
+  ProjectsService,
+  PullProjectService,
 } from 'canvas-editor-engine';
 import type { IDrawImageArgs } from 'canvas-editor-engine/dist/types/image';
 import type { ITool } from 'canvas-editor-engine/dist/types/general';
@@ -58,6 +60,35 @@ onMounted(() => {
   });
 });
 
+async function setProject(event: Event) {
+  const file: Ref<File | null> = ref(null);
+  const target = event.target as HTMLInputElement;
+
+  if (target && target.files) {
+    file.value = target.files[0];
+  }
+
+  if (!!file.value) {
+    
+    if (!!ctx.value) {
+      const jsonProject: JSON = await extractJsonProject(file.value) as JSON;
+      const projectProcessor = ProjectsService.on('File');
+      const serializer = projectProcessor.getSerializerInstance(jsonProject);
+      const projects = serializer.getProjects();
+      DrawService.drawProject(ctx.value, projects[0]);
+      ThroughHistoryService.recovery(projects[0]);
+    }
+  }
+}
+
+async function extractJsonProject(file: any) {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader()
+    fileReader.onload = (event) => resolve(event?.target?.result);
+    fileReader.onerror = error => reject(error)
+    fileReader.readAsText(file)
+  })
+}
 function setImage(event: Event) {
   const file: Ref<File | null> = ref(null);
   const target = event.target as HTMLInputElement;
@@ -164,6 +195,30 @@ function redo() {
     ThroughHistoryService.redo(ctx.value);
   }
 }
+
+function saveProject() {
+  PullProjectService.pull('test-project', 'test-project');
+  const project = PullProjectService.project;
+  saveTemplateAsFile('project.json', project);
+}
+
+function saveTemplateAsFile(filename: string, dataObjToWrite: any) {
+  const blob = new Blob([JSON.stringify([dataObjToWrite])], { type: "text/json" });
+  const link = document.createElement("a");
+
+  link.download = filename;
+  link.href = window.URL.createObjectURL(blob);
+  link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+
+  const evt = new MouseEvent("click", {
+    view: window,
+    bubbles: true,
+    cancelable: true,
+  });
+
+  link.dispatchEvent(evt);
+  link.remove();
+};
 </script>
 
 <template>
@@ -184,7 +239,7 @@ function redo() {
                   class="modal"
                   v-show="historyModalIsOpen"
                 >
-                  <span>history:</span>
+                  <span>HISTORY:</span>
                   <ul>
                     <template v-for="(item, i) in historyView" >
                       <li :key="i+item.stateName" v-if="item.stateName !== ''">{{ item.view }}</li>
@@ -194,10 +249,10 @@ function redo() {
               </transition>
             </teleport>
           </section>
-          <section class="editor__image-input_wrap">
+          <section class="editor__input-wrap">
             <input
               id="Image"
-              class="editor__image-input_input"
+              class="editor__input-input"
               name="image"
               type="file"
               accept="image/*"
@@ -206,10 +261,26 @@ function redo() {
             />
             <label
               for="Image"
-              class="editor__image-input_label"
+              class="editor__input-label"
             >
               Load Image
             </label>
+            <input
+              id="Project"
+              class="editor__input-input"
+              name="project"
+              type="file"
+              accept="application/JSON"
+              @change="setProject"
+              capture
+            />
+            <label
+              for="Project"
+              class="editor__input-label"
+            >
+              Load Project
+            </label>
+            <button @click="saveProject">Save Project</button>
           </section>
           <section class="legend">
             <h5>Smooth filter</h5>
@@ -316,15 +387,15 @@ section.crop {
   flex-direction: column;
 }
 
-.editor__image-input_wrap {
-  margin: 0 0 5px 0;
+.editor__input-wrap {
+  margin: 0 5px;
 }
 
-.editor__image-input_input {
+.editor__input-input {
   display: none;
 }
 
-.editor__image-input_label {
+.editor__input-label {
   padding: 4px;
   background-color: #232222;
   border: #555555 1px solid;

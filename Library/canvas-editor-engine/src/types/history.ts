@@ -1,8 +1,9 @@
+import { IImageState } from "../store/image.state";
 import { IPosition, ISize } from "./general";
 
 export interface IHistoryLine {
   stateName: string;
-  stateValue: any;
+  stateValue: IImageState;
   view: string; 
 }
 

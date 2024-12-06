@@ -16,6 +16,8 @@ import DownloadService from "./services/download.service";
 import ToolLayerService from "./services/tool-layers.service";
 import EventService from "./services/event.service";
 import ThroughHistoryService from "./services/through-history.service";
+import ProjectsService from "./services/projects.service";
+import PullProjectService from "./services/pull-project.service"
 
 import AppStore from "./store/store";
 
@@ -80,6 +82,8 @@ export {
   ToolLayerService,
   EventService,
   ThroughHistoryService,
+  ProjectsService,
+  PullProjectService,
 
   // general
   StaticCanvasEditorEngine,

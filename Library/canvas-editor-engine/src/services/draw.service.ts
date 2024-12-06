@@ -1,17 +1,19 @@
 import AppConfig from "../config";
 import { VagueFilter } from "../filters";
 import AppStore from "../store/store";
-import type { IDrawImageArgs, IFilterOptions, IImageLoggingDataVague, IImageOptions } from "../types/image";
+import { ISize } from "../types/general";
+import type { IDrawImageArgs, IDrawImageProcessor, IFilterOptions, IImageLoggingDataVague, IImageOptions } from "../types/image";
+import { Project } from "../types/project";
 import { Filter } from "../utils/filter";
 import EventService from "./event.service";
 
 
 export default class DrawService {
-  public static scImage: SCImage;
+  public static imageProcessor: IDrawImageProcessor;
 
   public static drawImage(ctx: CanvasRenderingContext2D, src: string, options: IDrawImageArgs) {
-    DrawService.scImage = new SCImage(src, ctx);
-    DrawService.scImage.draw(options).then(() => {
+    DrawService.imageProcessor = new SCImage(src, ctx);
+    DrawService.imageProcessor.draw(options).then(() => {
       const filter = new Filter(ctx);
       const zeroPosition = {
         x: 0,
@@ -26,10 +28,31 @@ export default class DrawService {
     });
   }
 
+  public static drawProject(ctx: CanvasRenderingContext2D, project: Project) {
+    // const { imageData, position, size } = project.state.current;
+    const imageData = project.state.current.imageData as ImageData;
+    const position = project.state.current.position as IImageOptions;
+    const size = project.state.current.size as ISize;
+
+    DrawService.imageProcessor = new PCImage(project, ctx);
+    DrawService.imageProcessor.draw();
+
+    AppStore.store.imageState.reduce({
+      tempImageData: imageData,
+      position: position,
+      size: size,
+    }, "Loaded project");
+  }
+
   public static drawSmoothImage(useStore: boolean, options: IDrawImageArgs, filterOptions: IFilterOptions) {
     const filterArgs: IImageOptions = DrawService.getFilterArgs(useStore, options);
     EventService.dispatch('loading-start');
-    this.scImage.vague(filterArgs, filterOptions)
+
+    if (!DrawService.imageProcessor) {
+      throw new Error('No valid ImageProcessor instance found');
+    }
+    
+    DrawService.imageProcessor.vague(filterArgs, filterOptions)
       .then(DrawService.updateImageStateAfterVague)
       .finally(() => EventService.dispatch('loading-end'));
   }
@@ -73,7 +96,7 @@ export default class DrawService {
   }
 }
 
-export class SCImage {
+export class SCImage implements IDrawImageProcessor {
   private img: HTMLImageElement = new Image();
   private ctx: CanvasRenderingContext2D;
 
@@ -82,11 +105,7 @@ export class SCImage {
     this.ctx = ctx;
   };
 
-  public get(): HTMLImageElement {
-    return this.img;
-  }
-
-  public draw(options: IDrawImageArgs) {
+  public draw(options?: IDrawImageArgs) {
     const proto = this;
     const protoImg = this.img;
 
@@ -106,6 +125,35 @@ export class SCImage {
           this.ctx.save();
           resolve(proto);
         });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  public vague(options: IImageOptions, filterOptions: IFilterOptions) {
+    const filter = new VagueFilter(this.ctx, options);
+    return filter.on('pixel', filterOptions);
+  }
+}
+
+class PCImage implements IDrawImageProcessor {
+  private project: Project;
+  private ctx: CanvasRenderingContext2D;
+
+  constructor(project: Project, ctx: CanvasRenderingContext2D) {
+    this.project = project;
+    this.ctx = ctx;
+  }
+
+  public draw(options?: IDrawImageArgs) {
+    const { imageData, position } = this.project.state.current;
+    return new Promise((resolve, reject) => {
+      try {
+        const filter = new Filter(this.ctx);
+        filter.update(imageData, position);
+        this.ctx.save();
+        resolve(this);
       } catch (error) {
         reject(error);
       }
