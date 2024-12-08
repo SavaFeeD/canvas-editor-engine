@@ -85,6 +85,10 @@ export class WebComponentWrapper {
   }
 }
 
+declare global {
+  interface HTMLElement {} 
+}
+
 export default class WebComponent extends HTMLElement {
   constructor() {
     super();

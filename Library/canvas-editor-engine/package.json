@@ -1,7 +1,7 @@
 {
-  "name": "canvas-editor-engine",
-  "version": "1.2.1",
-  "description": "CanvasEditorEngine library, use: [typescript] [canvas]",
+  "name": "nuxt-canvas-editor-engine",
+  "version": "2.0.1",
+  "description": "Nuxt version canvas editor engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -22,9 +22,12 @@
   "devDependencies": {
     "@types/lodash": "^4.17.10",
     "@types/node": "^22.7.4",
+    "@vue/compiler-sfc": "^3.5.13",
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "vue": "^3.5.13",
+    "vue-sfc-component": "^0.0.12"
   }
 }

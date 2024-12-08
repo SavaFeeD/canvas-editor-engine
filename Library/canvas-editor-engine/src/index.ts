@@ -62,6 +62,7 @@ class VueCanvasEditorEngine extends CanvasEditorEngine {
   }
 }
 
+
 export {
   // config
   AppConfig,
