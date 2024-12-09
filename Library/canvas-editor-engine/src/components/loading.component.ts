@@ -1,3 +1,6 @@
+import { reflect } from "../utils/reflect";
+reflect();
+
 import ComponentService from "../services/component.service";
 import EventService, { ControlEvent } from "../services/event.service";
 import LoggerService from "../services/logger.service";

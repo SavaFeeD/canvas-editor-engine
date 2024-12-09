@@ -1,3 +1,6 @@
+import { reflect } from "../utils/reflect";
+reflect();
+
 import { IWrapOptions } from "../types/general";
 
 export default class ComponentService {

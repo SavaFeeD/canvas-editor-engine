@@ -3,7 +3,7 @@ import { E_RGBA, IExtendedImageDataModel, type IImageOptions, type IImageSize, t
 import type { ISize, THEXColor } from '../types/general';
 
 import { Convert } from "./convert";
-import { range } from 'lodash';
+import { range } from './generation';
 
 export class Filter {
   public ctx: CanvasRenderingContext2D;
@@ -75,6 +75,7 @@ export class Filter {
     // case 1: Xcanvas -> Ximage && Ycanvas -> Yimage
     let leftIndex: number | undefined;
     let upIndex: number | undefined;
+    // @ts-ignore
     for (const [iy, row] of RGBAMatrix.entries()) {
       for (const [ix, rowItem] of row.entries()) {
         const isNotEmpty = rowItem[E_RGBA.a] !== 0;
@@ -92,6 +93,7 @@ export class Filter {
     // case 2 reverse matrix: Ximage <- Xcanvas && Yimage <- Ycanvas
     let rightIndex: number | undefined;
     let downIndex: number | undefined;
+    // @ts-ignore
     for (const [iy, row] of RGBAMatrix.reverse().entries()) {
       for (const [ix, rowItem] of row.reverse().entries()) {
         const isNotEmpty = rowItem[E_RGBA.a] !== 0;

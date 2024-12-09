@@ -14,7 +14,7 @@ import type {
 import { Filter } from "../../utils/filter";
 
 import { Convert } from "../../utils/convert";
-import { range } from 'lodash';
+import { range } from '../../utils/generation';
 import { ISize } from "../../types/general";
 
 

@@ -1,3 +1,6 @@
+import { reflect } from "../utils/reflect";
+reflect();
+
 export type THEXColor = `#${string}`;
 
 export type TComponent = HTMLElement | HTMLDivElement | HTMLCanvasElement;

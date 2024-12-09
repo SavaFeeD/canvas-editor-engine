@@ -1,3 +1,6 @@
+import { reflect } from "../utils/reflect";
+reflect();
+
 import { ICursorPosition } from "../types/cursor";
 import { TPipetteState } from "../types/pipette";
 import { ITool, THEXColor } from "../types/general";

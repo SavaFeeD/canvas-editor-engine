@@ -1,3 +1,6 @@
+import { reflect } from "../utils/reflect";
+reflect();
+
 import ComponentService from "../services/component.service";
 import ToolService from "../services/tool.service";
 import CanvasComponent from "./canvas.component";

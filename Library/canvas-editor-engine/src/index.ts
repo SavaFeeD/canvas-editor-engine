@@ -1,3 +1,6 @@
+import { reflect } from "./utils/reflect";
+reflect();
+
 import AppConfig from "./config";
 
 import WebComponent from "./web-component";

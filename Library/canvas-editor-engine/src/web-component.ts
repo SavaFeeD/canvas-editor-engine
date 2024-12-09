@@ -1,3 +1,6 @@
+import { reflect } from "./utils/reflect";
+reflect();
+
 import CanvasComponent from "./components/canvas.component";
 import ExcretionsComponent from "./components/excretions.component";
 import LoadingComponent from "./components/loading.component";
