@@ -2,34 +2,39 @@ import ComponentService from "../services/component.service";
 import LoggerService from "../services/logger.service";
 
 export default class SlotComponent extends ComponentService {
-  private static template: string = `
-    <slot class="slot"></slot>
-  `;
 
-  private static css: string = ``;
+  constructor(
+    private loggerService: LoggerService,
+  ) {
+    super();
 
-  public static slot: HTMLSlotElement;
-
-  static {
-    LoggerService.components.add({
+    this.loggerService.components.add({
       info: {
         name: 'slot', 
         description: 'slot component', 
       },
-      prototype: SlotComponent,
+      prototype: this,
     });
   }
 
-  public static getComponent(slotName: string) {
+  private template: string = `
+    <slot class="slot"></slot>
+  `;
+
+  private css: string = ``;
+
+  public slot: HTMLSlotElement;
+
+  public getComponent(slotName: string) {
     const wrapOptions = {
       className: 'slot-wrapper',
     };
-    const slotTemplate = SlotComponent.getTemplate(SlotComponent.template, wrapOptions);
+    const slotTemplate = this.getTemplate(this.template, wrapOptions);
 
-    const slotStyle = SlotComponent.getStyle(SlotComponent.css);
+    const slotStyle = this.getStyle(this.css);
 
-    SlotComponent.slot = slotTemplate.querySelector('slot');
-    SlotComponent.slot.name = slotName;
+    this.slot = slotTemplate.querySelector('slot');
+    this.slot.name = slotName;
 
     return { slotTemplate, slotStyle };
   }

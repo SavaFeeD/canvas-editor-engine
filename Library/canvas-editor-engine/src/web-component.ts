@@ -8,6 +8,18 @@ import PipetteComponent from "./components/pipette.component";
 import SlotComponent from "./components/slot.component";
 import EventService from "./services/event.service";
 import { TComponent } from "./types/general";
+import AppConfig from "./config";
+import LoggerService from "./services/logger.service";
+import ToolLayerService from "./services/tool-layers.service";
+import ToolService from "./services/tool.service";
+import CropService from "./services/crop.service";
+import AppStore from "./store/store";
+import ThroughHistoryService from "./services/through-history.service";
+import AppStoreRepository from "./store/storeRepository";
+import ProjectsService from "./services/projects.service";
+import PullProjectService from "./services/pull-project.service";
+import DrawService from "./services/draw.service";
+import DownloadService from "./services/download.service";
 
 export class WebComponentWrapper {
   public baseElement: HTMLDivElement;
@@ -89,41 +101,115 @@ export class WebComponentWrapper {
 }
 
 export default class WebComponent extends HTMLElement {
+  appConfig: AppConfig;
+  appStoreRepository: AppStoreRepository;
+  appStore: AppStore;
+  webComponentWrapper: WebComponentWrapper;
+  canvasElement: HTMLDivElement;
+
+  canvasComponent: CanvasComponent;
+  excretionsComponent: ExcretionsComponent;
+  loadingComponent: LoadingComponent;
+  pipetteComponent: PipetteComponent;
+  slotComponent: SlotComponent;
+
+  toolService: ToolService;
+  toolLayerService: ToolLayerService;
+  cropService: CropService;
+  eventService: EventService;
+  throughHistoryService: ThroughHistoryService;
+  projectsService: ProjectsService;
+  pullProjectService: PullProjectService;
+  loggerService: LoggerService;
+  drawService: DrawService;
+  downloadService: DownloadService;
+
   constructor() {
     super();
-    
     const shadowRoot = this.attachShadow({ mode: "open" });
+    this.webComponentWrapper = new WebComponentWrapper();
+    shadowRoot.appendChild(this.webComponentWrapper.baseElement);
+  }
 
-    const webComponentWrapper = new WebComponentWrapper();
+  init(
+    appConfig: AppConfig
+  ) {
+    this.appConfig = appConfig;
 
-    const { canvasTemplate, canvasStyle } = CanvasComponent.getComponent();
-    const canvasElement = webComponentWrapper.editorWrap.add(canvasTemplate, canvasStyle);
+    this.projectsService = new ProjectsService();
 
-    const { pipetteTemplate, pipetteStyle } = PipetteComponent.getComponent();
-    webComponentWrapper.editorWrap.add(pipetteTemplate, pipetteStyle);
+    this.loggerService = new LoggerService();
+    this.toolLayerService = new ToolLayerService(this.appConfig);
+    this.eventService = new EventService();
 
-    const { slotTemplate, slotStyle } = SlotComponent.getComponent('tools');
-    webComponentWrapper.toolsWrap.add(slotTemplate, slotStyle);
+    this.canvasComponent = new CanvasComponent(
+      this.appConfig,
+      this.loggerService,
+      this.toolLayerService
+    );
 
-    const { excretionsTemplate, excretionsStyle } = ExcretionsComponent.getComponent();
-    webComponentWrapper.editorWrap.add(excretionsTemplate, excretionsStyle);
+    this.toolService = new ToolService(this.canvasComponent);
+    this.appStoreRepository = new AppStoreRepository();
+    this.throughHistoryService = new ThroughHistoryService(this.appConfig, this.appStoreRepository);
+    this.appStore = new AppStore(this.throughHistoryService, this.appStoreRepository);
+    this.pullProjectService = new PullProjectService(this.throughHistoryService, this.appStoreRepository);
+    this.drawService = new DrawService(
+      this.appConfig,
+      this.appStoreRepository,
+      this.eventService
+    );
+    this.downloadService = new DownloadService(this.canvasComponent);
 
-    const { loadingTemplate, loadingStyle } = LoadingComponent.getComponent();
-    webComponentWrapper.editorWrap.add(loadingTemplate, loadingStyle);
+    const { canvasTemplate, canvasStyle } = this.canvasComponent.getComponent();
+    this.canvasElement = this.webComponentWrapper.editorWrap.add(canvasTemplate, canvasStyle);
 
-    shadowRoot.appendChild(webComponentWrapper.baseElement);
+    const pipetteComponent = new PipetteComponent(
+      this.toolService,
+      this.loggerService,
+      this.canvasComponent
+    );
 
-    CanvasComponent.simulateSubscriptions();
+    const { pipetteTemplate, pipetteStyle } = pipetteComponent.getComponent();
+    this.webComponentWrapper.editorWrap.add(pipetteTemplate, pipetteStyle);
 
-    EventService.applyEvents(webComponentWrapper.baseElement);
+    const slotComponent = new SlotComponent(
+      this.loggerService,
+    );
 
-    this.addEventListener('initial', () => {
-      this.dispatchEvent(new CustomEvent('get-editor-element', {
-        detail: {
-          editorElement: canvasElement,
-          canvasSelector: CanvasComponent.getCanvasSelector(),
-        }
-      }));
-    });
+    const { slotTemplate, slotStyle } = slotComponent.getComponent('tools');
+    this.webComponentWrapper.toolsWrap.add(slotTemplate, slotStyle);
+
+    this.excretionsComponent = new ExcretionsComponent(
+      this.toolService,
+      this.loggerService,
+      this.toolLayerService,
+      this.canvasComponent
+    );
+
+    this.cropService = new CropService(this.appConfig, this.appStoreRepository, this.excretionsComponent);
+
+    const { excretionsTemplate, excretionsStyle } = this.excretionsComponent.getComponent();
+    this.webComponentWrapper.editorWrap.add(excretionsTemplate, excretionsStyle);
+
+    const loadingComponent = new LoadingComponent(
+      this.loggerService,
+      this.eventService
+    );
+
+    const { loadingTemplate, loadingStyle } = loadingComponent.getComponent();
+    this.webComponentWrapper.editorWrap.add(loadingTemplate, loadingStyle);
+
+    this.canvasComponent.simulateSubscriptions();
+
+    this.eventService.applyEvents(this.webComponentWrapper.baseElement);
+
+    return this.initial();
+  }
+
+  initial() {
+    return {
+      editorElement: this.canvasElement,
+      canvasSelector: this.canvasComponent.getCanvasSelector(),
+    };
   }
 }

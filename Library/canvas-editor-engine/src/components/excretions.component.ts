@@ -17,20 +17,40 @@ import type {
 } from "../types/excretion";
 import type { ITool } from "../types/general";
 import LoggerService from "../services/logger.service";
-import CropService from "../services/crop.service";
+// import CropService from "../services/crop.service";
 import ToolLayerService from "../services/tool-layers.service";
 
 export default class ExcretionsComponent extends ComponentService {
-  private static template: string = ``;
+  
+  constructor(
+    private toolService: ToolService,
+    private loggerService: LoggerService,
+    private toolLayerService: ToolLayerService,
+    // private cropService: CropService,
+    private canvasComponent: CanvasComponent,
+  ) {
+    super();
 
-  private static templateExcretion: string = `
+    this.toolService.add(this.tool);
+    this.loggerService.components.add({
+      info: {
+        name: 'excretion',
+        description: 'excretion component',
+      },
+      prototype: this,
+    });
+  }
+
+  private template: string = ``;
+
+  private templateExcretion: string = `
     <button type="button" class="crop-button">
       <svg fill="#ffffff" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M426.667 0h106.666v1386.67H1920v106.66H426.667V0zM320 426.667H0v106.666h320V426.667zm320 0v106.666h746.67V1280h106.66V426.667H640zM1493.33 1600h-106.66v320h106.66v-320z"></path> </g></svg>
     </button>
   `;
-  private static _excretionDefaultStyle: string[] = ['excretion'];
+  private _excretionDefaultStyle: string[] = ['excretion'];
 
-  private static css: string = `
+  private css: string = `
     .excretion {
       display: flex;
       position: absolute;
@@ -39,7 +59,7 @@ export default class ExcretionsComponent extends ComponentService {
       background-size: 8px 1px, 8px 1px, 1px 8px, 1px 8px;
       background-position: left top, right bottom, left bottom, right top;
       animation: border-dance 1s infinite linear;
-      z-index: ${ToolLayerService.getLayerIndex('low')};
+      z-index: ${this.toolLayerService.getLayerIndex('low')};
     }
 
     .excretion_crop {
@@ -60,7 +80,7 @@ export default class ExcretionsComponent extends ComponentService {
       width: 30px;
       height: 30px;
       cursor: pointer;
-      z-index: ${ToolLayerService.getLayerIndex('high')};
+      z-index: ${this.toolLayerService.getLayerIndex('high')};
     }
 
     .crop-button--view {
@@ -77,170 +97,159 @@ export default class ExcretionsComponent extends ComponentService {
     }
   `;
 
-  public static excretionWrap: HTMLElement;
-  private static _excretions: HTMLElement[] = [];
+  public excretionWrap: HTMLElement;
+  private _excretions: HTMLElement[] = [];
 
-  private static _excretionState: TExcretionState = 'abandoned';
-  private static _excretionActivity: TExcretionActivity = 'abandoned';
-  private static _excretionToolState: TExcretionToolState = 'abandoned';
+  private _excretionState: TExcretionState = 'abandoned';
+  private _excretionActivity: TExcretionActivity = 'abandoned';
+  private _excretionToolState: TExcretionToolState = 'abandoned';
 
-  private static _tempCoords: TExcretionTempCoords = [];
-  public static excretionsCoords: IExcretionsCoords[] = [];
+  private _tempCoords: TExcretionTempCoords = [];
+  public excretionsCoords: IExcretionsCoords[] = [];
 
-  private static _additionStyle: TExcretionStyle = 'default';
+  private _additionStyle: TExcretionStyle = 'default';
 
-  public static get additionStyle() {
-    return ExcretionsComponent._additionStyle;
+  public get additionStyle() {
+    return this._additionStyle;
   }
 
-  public static set additionStyle(value: TExcretionStyle) {
-    ExcretionsComponent._additionStyle = value;
-    ExcretionsComponent.applyExcretionStyle();
+  public set additionStyle(value: TExcretionStyle) {
+    this._additionStyle = value;
+    this.applyExcretionStyle();
   }
 
-  private static applyExcretionStyle() {
-    switch(ExcretionsComponent._additionStyle) {
+  private applyExcretionStyle() {
+    switch(this._additionStyle) {
       case 'crop':
-        ExcretionsComponent.determineCropStyle();
+        this.determineCropStyle();
         break;
       case 'default':
-        ExcretionsComponent.determineDefaultStyle();
+        this.determineDefaultStyle();
         break;
       default:
-        ExcretionsComponent.determineDefaultStyle();
+        this.determineDefaultStyle();
         break;
     }
   };
 
-  private static determineCropStyle() {
-    ExcretionsComponent._excretions.forEach((excretion) => {
+  private determineCropStyle() {
+    this._excretions.forEach((excretion) => {
       if (!!excretion === false) return;
       if (!excretion.classList.contains('excretion_crop')) {
         excretion.classList.add("excretion_crop");
-        CropService.viewCropButton();
+        // this.cropService.viewCropButton();
       }
     });
   }
 
-  private static determineDefaultStyle() {
-    ExcretionsComponent._excretions.forEach((excretion) => {
+  private determineDefaultStyle() {
+    this._excretions.forEach((excretion) => {
       if (!!excretion === false) return;
       // @ts-ignore
-      excretion.classList = ExcretionsComponent._excretionDefaultStyle;
+      excretion.classList = this._excretionDefaultStyle;
     });
   }
 
-  private static tool: ITool = {
+  private tool: ITool = {
     id: 1,
     name: 'excretion',
-    onAction: () => ExcretionsComponent.setToolState('taken'),
-    offAction: () => ExcretionsComponent.setToolState('abandoned'),
+    onAction: () => this.setToolState('taken'),
+    offAction: () => this.setToolState('abandoned'),
     support: () => {
-      ExcretionsComponent.clearExcretionsCoords();
-      ExcretionsComponent.additionStyle = 'default';
+      this.clearExcretionsCoords();
+      this.additionStyle = 'default';
     },
   };
 
-  static {
-    ToolService.add(ExcretionsComponent.tool);
-    LoggerService.components.add({
-      info: {
-        name: 'excretion',
-        description: 'excretion component',
-      },
-      prototype: ExcretionsComponent,
-    });
-  }
-
-  public static getComponent() {
+  public getComponent() {
     const wrapOptions = {
       className: 'excretions-wrap',
     };
-    const excretionsTemplate = ExcretionsComponent.getTemplate(ExcretionsComponent.template, wrapOptions);
-    const excretionsStyle = ExcretionsComponent.getStyle(ExcretionsComponent.css);
+    const excretionsTemplate = this.getTemplate(this.template, wrapOptions);
+    const excretionsStyle = this.getStyle(this.css);
 
-    ExcretionsComponent.excretionWrap = excretionsTemplate;
-    ExcretionsComponent.emmit();
+    this.excretionWrap = excretionsTemplate;
+    this.emmit();
 
     return { excretionsTemplate, excretionsStyle };
   }
 
-  private static set excretionState(state: TExcretionState) {
-    ExcretionsComponent._excretionState = state;
-    ExcretionsComponent.applyExcretionStyle();
+  private set excretionState(state: TExcretionState) {
+    this._excretionState = state;
+    this.applyExcretionStyle();
     switch (state) {
       case 'abandoned':
-        CanvasComponent.cursorStyle = 'default';
+        this.canvasComponent.cursorStyle = 'default';
         break;
       case 'create':
-        CanvasComponent.cursorStyle = 'crosshair';
+        this.canvasComponent.cursorStyle = 'crosshair';
         break;
       case 'add':
-        CanvasComponent.cursorStyle = 'copy';
+        this.canvasComponent.cursorStyle = 'copy';
         break;
       case 'remove':
-        CanvasComponent.cursorStyle = 'alias';
+        this.canvasComponent.cursorStyle = 'alias';
         break;
       default:
-        CanvasComponent.cursorStyle = 'default';
+        this.canvasComponent.cursorStyle = 'default';
         break;
     }
   }
 
-  public static setToolState(toolState: TExcretionToolState) {
-    ExcretionsComponent._excretionToolState = toolState;
+  public setToolState(toolState: TExcretionToolState) {
+    this._excretionToolState = toolState;
 
     switch (toolState) {
       case 'abandoned':
-        ExcretionsComponent.excretionState = 'abandoned';
-        ExcretionsComponent._excretionActivity = 'abandoned';
+        this.excretionState = 'abandoned';
+        this._excretionActivity = 'abandoned';
         break;
       case 'taken':
-        ExcretionsComponent.excretionState = 'create';
+        this.excretionState = 'create';
         break;
       default:
-        ExcretionsComponent.excretionState = 'abandoned';
-        ExcretionsComponent._excretionActivity = 'abandoned';
+        this.excretionState = 'abandoned';
+        this._excretionActivity = 'abandoned';
         break;
     }
   }
 
-  public static clearExcretionsCoords() {
+  public clearExcretionsCoords() {
     console.log('clear!');
-    ExcretionsComponent._excretions.forEach((excretion) => excretion.remove());
-    ExcretionsComponent._excretions = [];
-    ExcretionsComponent.excretionsCoords = [];
+    this._excretions.forEach((excretion) => excretion.remove());
+    this._excretions = [];
+    this.excretionsCoords = [];
   }
 
-  private static getTempCoords() {
-    const startCoords = ExcretionsComponent._tempCoords[0];
-    const endCoords = ExcretionsComponent._tempCoords[1];
+  private getTempCoords() {
+    const startCoords = this._tempCoords[0];
+    const endCoords = this._tempCoords[1];
     const coords = Object.assign(startCoords, endCoords);
-    ExcretionsComponent._tempCoords = [];
+    this._tempCoords = [];
     return coords;
   }
 
-  private static endExcretion() {
-    const coords = ExcretionsComponent.getTempCoords();
-    ExcretionsComponent.excretionsCoords.push(coords);
-    ExcretionsComponent._excretionActivity = 'end';
-    console.log('ExcretionsComponent.excretionsCoords', ExcretionsComponent.excretionsCoords);
+  private endExcretion() {
+    const coords = this.getTempCoords();
+    this.excretionsCoords.push(coords);
+    this._excretionActivity = 'end';
+    console.log('this.excretionsCoords', this.excretionsCoords);
   }
 
-  private static emmit() {
-    CanvasComponent.subscribe('mousedown', (event: MouseEvent, cursorPosition: ICursorPosition) => {
-      const toolState = ExcretionsComponent._excretionToolState;
+  private emmit() {
+    this.canvasComponent.subscribe('mousedown', (event: MouseEvent, cursorPosition: ICursorPosition) => {
+      const toolState = this._excretionToolState;
       if (toolState === 'abandoned') return;
 
-      const state = ExcretionsComponent._excretionState;
+      const state = this._excretionState;
 
       if (state === 'create') {
         const wrapOptions = {
-          className: ExcretionsComponent._excretionDefaultStyle[0],
+          className: this._excretionDefaultStyle[0],
         };
-        const excretionTemplate = ExcretionsComponent.getTemplate(ExcretionsComponent.templateExcretion, wrapOptions);
+        const excretionTemplate = this.getTemplate(this.templateExcretion, wrapOptions);
 
-        ExcretionsComponent.clearExcretionsCoords();
+        this.clearExcretionsCoords();
 
         const tempStart: IExcretionTempStart = {
           start: cursorPosition,
@@ -249,38 +258,38 @@ export default class ExcretionsComponent extends ComponentService {
         excretionTemplate.style.left = `${tempStart.start.x}px`;
         excretionTemplate.style.top = `${tempStart.start.y}px`;
 
-        const excretionElement = ExcretionsComponent.excretionWrap.appendChild(excretionTemplate);
+        const excretionElement = this.excretionWrap.appendChild(excretionTemplate);
 
-        ExcretionsComponent._excretions.push(excretionElement);
-        ExcretionsComponent._tempCoords.push(tempStart);
+        this._excretions.push(excretionElement);
+        this._tempCoords.push(tempStart);
       }
 
       if (state === 'add') {
         const tempStart: IExcretionTempStart = {
           start: cursorPosition,
         };
-        ExcretionsComponent._tempCoords.push(tempStart);
+        this._tempCoords.push(tempStart);
       }
 
-      ExcretionsComponent.applyExcretionStyle();
-      ExcretionsComponent._excretionActivity = 'active';
+      this.applyExcretionStyle();
+      this._excretionActivity = 'active';
     });
 
 
-    CanvasComponent.subscribe('mousemove', (event: MouseEvent, cursorPosition: ICursorPosition) => {
-      const toolState = ExcretionsComponent._excretionToolState;
+    this.canvasComponent.subscribe('mousemove', (event: MouseEvent, cursorPosition: ICursorPosition) => {
+      const toolState = this._excretionToolState;
       if (toolState === 'abandoned') return;
 
-      const activity = ExcretionsComponent._excretionActivity;
-      if (event.altKey && ExcretionsComponent._excretionState !== 'abandoned') {
-        ExcretionsComponent._excretionState = 'add';
+      const activity = this._excretionActivity;
+      if (event.altKey && this._excretionState !== 'abandoned') {
+        this._excretionState = 'add';
       }
 
       if (activity === 'abandoned') return;
 
       if (activity === 'active') {
-        const excretionLastIndex = ExcretionsComponent._excretions.length - 1;
-        const excretion = ExcretionsComponent._excretions[excretionLastIndex];
+        const excretionLastIndex = this._excretions.length - 1;
+        const excretion = this._excretions[excretionLastIndex];
         const excretionX = +(excretion.style.left.split('px')[0]);
         const excretionY = +(excretion.style.top.split('px')[0]);
         const width = Math.abs(cursorPosition.x - excretionX);
@@ -306,11 +315,11 @@ export default class ExcretionsComponent extends ComponentService {
 
     });
 
-    CanvasComponent.subscribe('mouseup', (event: MouseEvent, cursorPosition: ICursorPosition) => {
-      const toolState = ExcretionsComponent._excretionToolState;
+    this.canvasComponent.subscribe('mouseup', (event: MouseEvent, cursorPosition: ICursorPosition) => {
+      const toolState = this._excretionToolState;
       if (toolState === 'abandoned') return;
 
-      const state = ExcretionsComponent._excretionState;
+      const state = this._excretionState;
 
       if (state === 'abandoned') return;
 
@@ -318,8 +327,8 @@ export default class ExcretionsComponent extends ComponentService {
         const tempEnd: IExcretionTempEnd = {
           end: cursorPosition,
         };
-        ExcretionsComponent._tempCoords.push(tempEnd);
-        ExcretionsComponent.endExcretion();
+        this._tempCoords.push(tempEnd);
+        this.endExcretion();
       }
     });
   }

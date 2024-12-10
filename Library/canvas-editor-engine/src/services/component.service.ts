@@ -4,7 +4,7 @@ reflect();
 import { IWrapOptions } from "../types/general";
 
 export default class ComponentService {
-  protected static getTemplate(template: string, wrapOptions?: IWrapOptions): HTMLElement | null {
+  protected getTemplate(template: string, wrapOptions?: IWrapOptions): HTMLElement | null {
     const options: IWrapOptions = {
       tag: 'div',
     };
@@ -34,7 +34,7 @@ export default class ComponentService {
     return wrap;
   }
 
-  protected static getStyle(css: string): HTMLStyleElement | null {
+  protected getStyle(css: string): HTMLStyleElement | null {
     if (!!css === false) return null; 
     const style = document.createElement('style');
     style.type = 'text/css';

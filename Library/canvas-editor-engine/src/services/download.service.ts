@@ -1,14 +1,16 @@
 import CanvasComponent from "../components/canvas.component";
 
 export default class DownloadService {
-  public static getDataUrl() {
-    return CanvasComponent.canvas.toDataURL();
+  constructor(private canvasComponent: CanvasComponent) { }
+
+  public getDataUrl() {
+    return this.canvasComponent.canvas.toDataURL();
   }
 
-  public static download(filename?: string) {
+  public download(filename?: string) {
     const link = document.createElement('a');
     link.download = `${filename || 'image'}.png`;
-    link.href = DownloadService.getDataUrl();
+    link.href = this.getDataUrl();
     link.click();
   }
 }

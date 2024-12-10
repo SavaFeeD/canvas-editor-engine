@@ -1,9 +1,5 @@
-import AppStore from "../store/store";
 import { Project, IProjectModule, TProjectModule, TProjectModuleName } from "../types/project";
-import { Guid4 } from "../utils/guid4";
 import { ProjectFileSerializer } from "../utils/project-file-serializer";
-import ThroughHistoryService from "./through-history.service";
-
 
 class LocalStorageProjectModule implements IProjectModule {
   projectsKey: string = 'cee-projects';
@@ -69,60 +65,59 @@ class LocalStorageProjectModule implements IProjectModule {
 }
 
 class ProjectFileProjectModule implements IProjectModule {
-  private static _serializer: ProjectFileSerializer;
+  private _serializer: ProjectFileSerializer;
 
-  public static setSerializer(serializer: ProjectFileSerializer) {
-    ProjectFileProjectModule._serializer = serializer;
+  public setSerializer(serializer: ProjectFileSerializer) {
+    this._serializer = serializer;
   }
 
   getProjects(): Project[] {
-    return ProjectFileProjectModule._serializer.getProjects();
+    return this._serializer.getProjects();
   }
 
   getProject(projectId: string): Project {
-    return ProjectFileProjectModule._serializer.getProject(projectId);
+    return this._serializer.getProject(projectId);
   }
 
   saveProject(project: Project): void {
-    return ProjectFileProjectModule._serializer.saveProject(project);
+    return this._serializer.saveProject(project);
   }
 
   saveProjects(projects: Project[]): void {
-    return ProjectFileProjectModule._serializer.saveProjects(projects);
+    return this._serializer.saveProjects(projects);
   }
 
   removeProject(projectId: string): void {
-    return ProjectFileProjectModule._serializer.removeProject(projectId);
+    return this._serializer.removeProject(projectId);
   }
 
   updateProject(project: Project): void {
-    return ProjectFileProjectModule._serializer.updateProject(project);
+    return this._serializer.updateProject(project);
   }
 
 }
 
 export default class ProjectsService {
-  private static _modules: TProjectModule[] = [];
-  private static _serializer = ProjectFileSerializer;
+  private _modules: TProjectModule[] = [];
+  private _serializer = ProjectFileSerializer;
 
+  constructor() {
+    this._addModule('LocalStorage', new LocalStorageProjectModule());
+    this._addModule('File', new ProjectFileProjectModule());
+  }
 
-  public static on(moduleName: TProjectModuleName) {
-    const module = ProjectsService._modules.find((module) => module.name === moduleName);
+  public on(moduleName: TProjectModuleName) {
+    const module = this._modules.find((module) => module.name === moduleName);
     if (!module) {
       throw new Error(`Module ${moduleName} not found`);
     }
     return {
-      getSerializerInstance: (file: any) => new ProjectsService._serializer(file),
+      getSerializerInstance: (file: any) => new this._serializer(file),
       instance: module.instance,
     };
   }
 
-  static {
-    ProjectsService._addModule('LocalStorage', new LocalStorageProjectModule());
-    ProjectsService._addModule('File', new ProjectFileProjectModule());
-  }
-
-  private static _addModule(name: TProjectModuleName, module: IProjectModule) {
-    ProjectsService._modules.push({ name, instance: module });
+  private _addModule(name: TProjectModuleName, module: IProjectModule) {
+    this._modules.push({ name, instance: module });
   }
 }

@@ -7,11 +7,26 @@ import LoggerService from "../services/logger.service";
 
 
 export default class LoadingComponent extends ComponentService {
-  private static template: string = `
+  constructor(
+    private loggerService: LoggerService,
+    private eventService: EventService,
+  ) {
+    super();
+
+    this.loggerService.components.add({
+      info: {
+        name: 'loading', 
+        description: 'loading component', 
+      },
+      prototype: this,
+    });
+  }
+
+  private template: string = `
     <span class="loader"></span>
   `;
 
-  private static css: string = `
+  private css: string = `
     .loading-wrapper {
       display: none;  
       justify-content: center;
@@ -56,54 +71,44 @@ export default class LoadingComponent extends ComponentService {
     }
   `;
 
-  public static loading: HTMLElement;
+  public loading: HTMLElement;
 
-  static {
-    LoggerService.components.add({
-      info: {
-        name: 'loading', 
-        description: 'loading component', 
-      },
-      prototype: LoadingComponent,
-    });
-  }
-
-  public static getComponent() {
+  public getComponent() {
     const wrapOptions = {
       className: 'loading-wrapper',
     };
-    const loadingTemplate = LoadingComponent.getTemplate(LoadingComponent.template, wrapOptions);
-    const loadingStyle = LoadingComponent.getStyle(LoadingComponent.css);
+    const loadingTemplate = this.getTemplate(this.template, wrapOptions);
+    const loadingStyle = this.getStyle(this.css);
 
-    LoadingComponent.loading = loadingTemplate;
+    this.loading = loadingTemplate;
 
-    LoadingComponent.subscribeLoadingStart();
-    LoadingComponent.subscribeLoadingEnd();
+    this.subscribeLoadingStart();
+    this.subscribeLoadingEnd();
 
     return { loadingTemplate, loadingStyle };
   }
 
-  public static hide() {
-    LoadingComponent.loading.style.display = 'none';
+  public hide() {
+    this.loading.style.display = 'none';
   }
 
-  public static view() {
-    LoadingComponent.loading.style.display = 'flex';
+  public view() {
+    this.loading.style.display = 'flex';
   }
 
-  private static subscribeLoadingStart() {
+  private subscribeLoadingStart() {
     const controlEvent: ControlEvent = {
       name: 'loading-start',
-      action: () => LoadingComponent.view(),
+      action: () => this.view(),
     };
-    EventService.subcribe(controlEvent);
+    this.eventService.subcribe(controlEvent);
   }
 
-  private static subscribeLoadingEnd() {
+  private subscribeLoadingEnd() {
     const controlEvent: ControlEvent = {
       name: 'loading-end',
-      action: () => LoadingComponent.hide(),
+      action: () => this.hide(),
     };
-    EventService.subcribe(controlEvent);
+    this.eventService.subcribe(controlEvent);
   }
 }

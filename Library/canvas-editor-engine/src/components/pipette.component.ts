@@ -11,7 +11,25 @@ import ToolService from "../services/tool.service";
 import LoggerService from "../services/logger.service";
 
 export default class PipetteComponent extends ComponentService {
-  public static template = `
+  constructor(
+    private toolService: ToolService,
+    private loggerService: LoggerService,
+    private canvasComponent: CanvasComponent,
+  ) {
+    super();
+
+    this.toolService.add(this.tool);
+
+    this.loggerService.components.add({
+      info: {
+        name: 'pipette', 
+        description: 'pipette component', 
+      },
+      prototype: this,
+    });
+  }
+
+  public template = `
     <div class="pipette_border-out">
       <div class="pipette_color">
         <div class="pipette_border-in">
@@ -21,7 +39,7 @@ export default class PipetteComponent extends ComponentService {
     </div>
   `;
 
-  public static css = `
+  public css = `
   .pipette {
     position: absolute;
     display: none;
@@ -62,115 +80,104 @@ export default class PipetteComponent extends ComponentService {
     border-style: solid;
     border-width: 5px;
   }
-  `
+  `;
 
-  public static pipette: HTMLElement;
+  public pipette: HTMLElement;
   
-  private static _pipetteColor: THEXColor;
+  private _pipetteColor: THEXColor;
 
-  public static set pipetteColor(color: THEXColor) {
-    PipetteComponent._pipetteColor = color;
-    PipetteComponent._pipetteColorElement.style.borderColor = PipetteComponent._pipetteColor;
+  public set pipetteColor(color: THEXColor) {
+    this._pipetteColor = color;
+    this._pipetteColorElement.style.borderColor = this._pipetteColor;
   }
 
-  public static get pipetteColor(): THEXColor {
-    return PipetteComponent._pipetteColor;
+  public get pipetteColor(): THEXColor {
+    return this._pipetteColor;
   }
   
-  private static _pipetteColorElement: HTMLDivElement;
+  private _pipetteColorElement: HTMLDivElement;
 
-  private static _pipetteState: TPipetteState = 'abandoned';
+  private _pipetteState: TPipetteState = 'abandoned';
 
-  private static tool: ITool = {
+  private tool: ITool = {
     id: 0,
     name: 'pipette',
-    onAction: () => PipetteComponent.setState('taken'),
-    offAction: () => PipetteComponent.setState('abandoned'),
+    onAction: () => this.setState('taken'),
+    offAction: () => this.setState('abandoned'),
   };
 
-  static {
-    ToolService.add(PipetteComponent.tool);
-    LoggerService.components.add({
-      info: {
-        name: 'pipette', 
-        description: 'pipette component', 
-      },
-      prototype: PipetteComponent,
-    });
-  }
-
-  public static getComponent() {
+  public getComponent() {
     const wrapOptions = {
       className: 'pipette',
     };
-    const pipetteTemplate = PipetteComponent.getTemplate(PipetteComponent.template, wrapOptions);
-    const pipetteStyle = PipetteComponent.getStyle(PipetteComponent.css);
+    const pipetteTemplate = this.getTemplate(this.template, wrapOptions);
+    const pipetteStyle = this.getStyle(this.css);
     
-    PipetteComponent.pipette = pipetteTemplate;
-    PipetteComponent._pipetteColorElement = pipetteTemplate.querySelector('.pipette_color');
+    this.pipette = pipetteTemplate;
+    this._pipetteColorElement = pipetteTemplate.querySelector('.pipette_color');
 
-    PipetteComponent.emmit();
+    this.emmit();
 
     return { pipetteTemplate, pipetteStyle };
   }
 
-  public static setState(state: TPipetteState) {
-    PipetteComponent._pipetteState = state;
+  public setState(state: TPipetteState) {
+    this._pipetteState = state;
 
     switch(state) {
       case 'abandoned':
-        return PipetteComponent.hide();
+        return this.hide();
       case 'taken':
-        return PipetteComponent.show();
+        return this.show();
       case 'selected-color':
-        return PipetteComponent.show();
+        return this.show();
       default:
-        return PipetteComponent.hide();
+        return this.hide();
     }
   }
 
-  public static emmit() {
-    CanvasComponent.subscribe('mousemove', (event: MouseEvent, cursorPosition: ICursorPosition) => {
-      const state = PipetteComponent._pipetteState; 
+  public emmit() {
+    this.canvasComponent.subscribe('mousemove', (event: MouseEvent, cursorPosition: ICursorPosition) => {
+      const state = this._pipetteState; 
       if (state === 'taken' || state === 'selected-color') {
         const { x, y } = cursorPosition;
-        PipetteComponent.pipette.style.left = `${x+10}px`;
-        PipetteComponent.pipette.style.top = `${y+10}px`;
+        this.pipette.style.left = `${x+10}px`;
+        this.pipette.style.top = `${y+10}px`;
       }
     });
 
-    CanvasComponent.subscribe('click', (event: MouseEvent, cursorPosition: ICursorPosition) => {
-      const state = PipetteComponent._pipetteState; 
+    this.canvasComponent.subscribe('click', (event: MouseEvent, cursorPosition: ICursorPosition) => {
+      const state = this._pipetteState; 
       if (state === 'taken' || state === 'selected-color') {
 
         console.log('pipetteState', state);
 
         if (state === 'taken') {
-          PipetteComponent.setColorFromChoosenPixel(cursorPosition);
-          PipetteComponent.setState('selected-color');
+          this.setColorFromChoosenPixel(cursorPosition);
+          this.setState('selected-color');
         }
 
         if (state === 'selected-color') {
-          PipetteComponent.setColorFromChoosenPixel(cursorPosition);
+          this.setColorFromChoosenPixel(cursorPosition);
         }
       }
     });
   }
 
-  private static setColorFromChoosenPixel(cursorPosition: ICursorPosition) {
+  private setColorFromChoosenPixel(cursorPosition: ICursorPosition) {
     const { x, y } = cursorPosition;
-    const pixel = CanvasComponent.ctx.getImageData(x, y, 1, 1).data;
+    const pixel = this.canvasComponent.ctx.getImageData(x, y, 1, 1).data;
     const hexPixel = Convert.rgbToHex(pixel[0], pixel[1], pixel[2]);
-    PipetteComponent.pipetteColor = hexPixel;
+    this.pipetteColor = hexPixel;
   }
 
-  private static show() {
-    PipetteComponent.pipette.style.display = 'flex';
-    CanvasComponent.cursorStyle = 'default';
+  private show() {
+    this.pipette.style.display = 'flex';
+    this.canvasComponent.cursorStyle = 'default';
   }
 
-  private static hide() {
-    PipetteComponent.pipette.style.display = 'none';
-    CanvasComponent.cursorStyle = 'default';
+  private hide() {
+    this.pipette.style.display = 'none';
+    this.canvasComponent.cursorStyle = 'default';
   }
 }

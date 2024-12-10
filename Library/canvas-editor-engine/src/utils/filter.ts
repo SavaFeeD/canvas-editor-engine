@@ -9,7 +9,10 @@ export class Filter {
   public ctx: CanvasRenderingContext2D;
   public imageSize: IImageSize;
 
-  constructor(ctx: CanvasRenderingContext2D) {
+  constructor(
+    private appConfig: AppConfig,
+    ctx: CanvasRenderingContext2D,
+  ) {
     this.ctx = ctx;
   }
 
@@ -18,8 +21,8 @@ export class Filter {
   }
 
   public copy(options: IImageOptions): ImageData {
-    const width = (options?.width) ? options.width : AppConfig.CANVAS_SIZE.width;
-    const height = (options?.height) ? options.height : AppConfig.CANVAS_SIZE.height;
+    const width = (options?.width) ? options.width : this.appConfig.CANVAS_SIZE.width;
+    const height = (options?.height) ? options.height : this.appConfig.CANVAS_SIZE.height;
     
     const imgData: ImageData = this.ctx.getImageData(options.x, options.y, width, height);
     
@@ -27,8 +30,8 @@ export class Filter {
   }
 
   public copyExtendedModel(options: IImageOptions): IExtendedImageDataModel {
-    const width = (options?.width) ? options.width : AppConfig.CANVAS_SIZE.width;
-    const height = (options?.height) ? options.height : AppConfig.CANVAS_SIZE.height;
+    const width = (options?.width) ? options.width : this.appConfig.CANVAS_SIZE.width;
+    const height = (options?.height) ? options.height : this.appConfig.CANVAS_SIZE.height;
     
     const imgData: ImageData = this.ctx.getImageData(options.x, options.y, width, height);
     const extendedImageData = this.clearEmptyPixels(imgData);
@@ -37,7 +40,7 @@ export class Filter {
   }
 
   public update(imgData: ImageData, options: IImageOptions) {
-    this.ctx.clearRect(0, 0, AppConfig.CANVAS_SIZE.width, AppConfig.CANVAS_SIZE.height);
+    this.ctx.clearRect(0, 0, this.appConfig.CANVAS_SIZE.width, this.appConfig.CANVAS_SIZE.height);
     this.ctx.putImageData(imgData, options.x, options.y);
   }
 

@@ -1,6 +1,6 @@
 import AppConfig from "../config";
 import { VagueFilter } from "../filters";
-import AppStore from "../store/store";
+import AppStoreRepository from "../store/storeRepository";
 import { ISize } from "../types/general";
 import type { IDrawImageArgs, IDrawImageProcessor, IFilterOptions, IImageLoggingDataVague, IImageOptions } from "../types/image";
 import { Project } from "../types/project";
@@ -9,66 +9,72 @@ import EventService from "./event.service";
 
 
 export default class DrawService {
-  public static imageProcessor: IDrawImageProcessor;
+  public imageProcessor: IDrawImageProcessor;
 
-  public static drawImage(ctx: CanvasRenderingContext2D, src: string, options: IDrawImageArgs) {
-    DrawService.imageProcessor = new SCImage(src, ctx);
-    DrawService.imageProcessor.draw(options).then(() => {
-      const filter = new Filter(ctx);
+  constructor(
+    private appConfig: AppConfig,
+    private appStoreRepository: AppStoreRepository,
+    private eventService: EventService,
+  ) {};
+
+  public drawImage(ctx: CanvasRenderingContext2D, src: string, options: IDrawImageArgs) {
+    this.imageProcessor = new SCImage(this.appConfig, src, ctx);
+    this.imageProcessor.draw(options).then(() => {
+      const filter = new Filter(this.appConfig, ctx);
       const zeroPosition = {
         x: 0,
         y: 0,
       };
       const imageData = filter.copy(zeroPosition);
-      AppStore.store.imageState.reduce({
+      this.appStoreRepository.store.imageState.reduce({
         tempImageData: imageData,
         position: zeroPosition,
-        size: AppConfig.CANVAS_SIZE,
+        size: this.appConfig.CANVAS_SIZE,
       }, "Loaded image");
     });
   }
 
-  public static drawProject(ctx: CanvasRenderingContext2D, project: Project) {
+  public drawProject(ctx: CanvasRenderingContext2D, project: Project) {
     // const { imageData, position, size } = project.state.current;
     const imageData = project.state.current.imageData as ImageData;
     const position = project.state.current.position as IImageOptions;
     const size = project.state.current.size as ISize;
 
-    DrawService.imageProcessor = new PCImage(project, ctx);
-    DrawService.imageProcessor.draw();
+    this.imageProcessor = new PCImage(this.appConfig, project, ctx);
+    this.imageProcessor.draw();
 
-    AppStore.store.imageState.reduce({
+    this.appStoreRepository.store.imageState.reduce({
       tempImageData: imageData,
       position: position,
       size: size,
     }, "Loaded project");
   }
 
-  public static drawSmoothImage(useStore: boolean, options: IDrawImageArgs, filterOptions: IFilterOptions) {
-    const filterArgs: IImageOptions = DrawService.getFilterArgs(useStore, options);
-    EventService.dispatch('loading-start');
+  public drawSmoothImage(useStore: boolean, options: IDrawImageArgs, filterOptions: IFilterOptions) {
+    const filterArgs: IImageOptions = this.getFilterArgs(useStore, options);
+    this.eventService.dispatch('loading-start');
 
-    if (!DrawService.imageProcessor) {
+    if (!this.imageProcessor) {
       throw new Error('No valid ImageProcessor instance found');
     }
     
-    DrawService.imageProcessor.vague(filterArgs, filterOptions)
-      .then(DrawService.updateImageStateAfterVague)
-      .finally(() => EventService.dispatch('loading-end'));
+    this.imageProcessor.vague(filterArgs, filterOptions)
+      .then(this.updateImageStateAfterVague)
+      .finally(() => this.eventService.dispatch('loading-end'));
   }
 
-  private static updateImageStateAfterVague(data: IImageLoggingDataVague) {
+  private updateImageStateAfterVague(data: IImageLoggingDataVague) {
     const { imageData, position, size, quality } = data;
-    AppStore.store.imageState.reduce({
+    this.appStoreRepository.store.imageState.reduce({
       tempImageData: imageData,
       position: position,
       size: size,
     }, `[Filter Vague] quality: ${quality}`);
   }
 
-  private static getFilterArgs(useStore: boolean, options: IDrawImageArgs) {
+  private getFilterArgs(useStore: boolean, options: IDrawImageArgs) {
     let filterArgs: IImageOptions;
-    const store = AppStore.store.imageState;
+    const store = this.appStoreRepository.store.imageState;
 
     if (useStore) {
       filterArgs = {
@@ -100,7 +106,11 @@ export class SCImage implements IDrawImageProcessor {
   private img: HTMLImageElement = new Image();
   private ctx: CanvasRenderingContext2D;
 
-  constructor(src: string, ctx: CanvasRenderingContext2D) {
+  constructor(
+    private appConfig: AppConfig,
+    src: string,
+    ctx: CanvasRenderingContext2D
+  ) {
     this.img.src = src;
     this.ctx = ctx;
   };
@@ -117,7 +127,7 @@ export class SCImage implements IDrawImageProcessor {
             if (!!options.size?.width && !!options.size?.height) {
               drawImageArgs = drawImageArgs.concat([options.size.width, options.size.height]);
             } else {
-              drawImageArgs = drawImageArgs.concat([AppConfig.CANVAS_SIZE.width, AppConfig.CANVAS_SIZE.height]);
+              drawImageArgs = drawImageArgs.concat([this.appConfig.CANVAS_SIZE.width, this.appConfig.CANVAS_SIZE.height]);
             }
           }
           // @ts-ignore
@@ -132,7 +142,7 @@ export class SCImage implements IDrawImageProcessor {
   }
 
   public vague(options: IImageOptions, filterOptions: IFilterOptions) {
-    const filter = new VagueFilter(this.ctx, options);
+    const filter = new VagueFilter(this.appConfig, this.ctx, options);
     return filter.on('pixel', filterOptions);
   }
 }
@@ -141,7 +151,11 @@ class PCImage implements IDrawImageProcessor {
   private project: Project;
   private ctx: CanvasRenderingContext2D;
 
-  constructor(project: Project, ctx: CanvasRenderingContext2D) {
+  constructor(
+    private appConfig: AppConfig,
+    project: Project,
+    ctx: CanvasRenderingContext2D
+  ) {
     this.project = project;
     this.ctx = ctx;
   }
@@ -150,7 +164,7 @@ class PCImage implements IDrawImageProcessor {
     const { imageData, position } = this.project.state.current;
     return new Promise((resolve, reject) => {
       try {
-        const filter = new Filter(this.ctx);
+        const filter = new Filter(this.appConfig, this.ctx);
         filter.update(imageData, position);
         this.ctx.save();
         resolve(this);
@@ -161,7 +175,7 @@ class PCImage implements IDrawImageProcessor {
   }
 
   public vague(options: IImageOptions, filterOptions: IFilterOptions) {
-    const filter = new VagueFilter(this.ctx, options);
+    const filter = new VagueFilter(this.appConfig, this.ctx, options);
     return filter.on('pixel', filterOptions);
   }
 }

@@ -23,46 +23,47 @@ import ProjectsService from "./services/projects.service";
 import PullProjectService from "./services/pull-project.service"
 
 import AppStore from "./store/store";
+import AppStoreRepository from "./store/storeRepository";
 
 
 class CanvasEditorEngine {
-  constructor(webComponentTagName?: string) {
-    AppConfig.WEB_COMPONENT_TAG_NAME = webComponentTagName;
-  }
+  
+  constructor(
+  ) {}
 
   public getInitial() {
-    return { tag: AppConfig.WEB_COMPONENT_TAG_NAME, component: WebComponent };
+    return { component: WebComponent };
   }
 }
 
 
 class StaticCanvasEditorEngine extends CanvasEditorEngine {
   
-  constructor(webComponentTagName?: string) {
-    super(webComponentTagName);
+  constructor() {
+    super();
   }
 
   public init() {
     const customElementRegistry = window.customElements;
-    const { tag, component } = this.getInitial();
-    customElementRegistry.define(tag, component);
+    const { component } = this.getInitial();
+    customElementRegistry.define('canvas-editor-engine', component);
   }
 }
 
 
 class VueCanvasEditorEngine extends CanvasEditorEngine {
 
-  constructor(webComponentTagName?: string) {
-    super(webComponentTagName);
+  constructor() {
+    super();
   }
 
-  public getContext2D() {
-    return CanvasComponent.ctx;
-  }
+  // public getContext2D() {
+  //   return CanvasComponent.ctx;
+  // }
 
-  public getCanvas() {
-    return CanvasComponent.canvas;
-  }
+  // public getCanvas() {
+  //   return CanvasComponent.canvas;
+  // }
 }
 
 export {
@@ -94,4 +95,5 @@ export {
 
   // store
   AppStore,
+  AppStoreRepository,
 };

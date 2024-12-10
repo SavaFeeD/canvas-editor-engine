@@ -1,55 +1,61 @@
-import AppStore from "../store/store";
+import AppConfig from "../config";
+import AppStoreRepository from "../store/storeRepository";
 import { IPosition } from "../types/general";
 import { IHistoryLine } from "../types/history";
 import { Project } from "../types/project";
 import { Filter } from "../utils/filter";
 
 export default class ThroughHistoryService {
-  public static cache: IHistoryLine[] = [];
+  public cache: IHistoryLine[] = [];
+
+  constructor(
+    private appConfig: AppConfig,
+    private appStoreRepository: AppStoreRepository,
+  ) {}
   
-  public static current() {
-    const history = AppStore.store.historyState.historyLines;
+  public current() {
+    const history = this.appStoreRepository.store.historyState.historyLines;
     const lastIndex = history.length - 1;
     return history[lastIndex];
   }
 
-  public static prev() {
-    const history = AppStore.store.historyState.historyLines;
+  public prev() {
+    const history = this.appStoreRepository.store.historyState.historyLines;
     const prevIndex = history.length - 2;
     return history[prevIndex];
   }
   
-  public static undo(ctx: CanvasRenderingContext2D) {
-    const current = ThroughHistoryService.current();
-    const prev = ThroughHistoryService.prev();
+  public undo(ctx: CanvasRenderingContext2D) {
+    const current = this.current();
+    const prev = this.prev();
     if (!!current?.stateValue) {
-      ThroughHistoryService.cache.unshift(current);
-      AppStore.store.historyState.reduce('UNDO');
+      this.cache.unshift(current);
+      this.appStoreRepository.store.historyState.reduce('UNDO');
       if (prev?.stateValue) {
-        ThroughHistoryService.updateCanvas(ctx, prev.stateValue);
+        this.updateCanvas(ctx, prev.stateValue);
       }
     }
   };
 
-  public static redo(ctx: CanvasRenderingContext2D) {
-    const firstInCache = ThroughHistoryService.cache.shift();
+  public redo(ctx: CanvasRenderingContext2D) {
+    const firstInCache = this.cache.shift();
     if (!!firstInCache?.stateValue) {
-      AppStore.store.historyState.reduce('REDO', firstInCache);
-      ThroughHistoryService.updateCanvas(ctx, firstInCache.stateValue);
+      this.appStoreRepository.store.historyState.reduce('REDO', firstInCache);
+      this.updateCanvas(ctx, firstInCache.stateValue);
     }
   };
 
-  public static clearCache() {
-    ThroughHistoryService.cache = [];
+  public clearCache() {
+    this.cache = [];
   }
 
-  public static recovery(project: Project) {
-    AppStore.store.historyState.reduce('SET_HISTORY', { historyLines: project.state.history});
-    ThroughHistoryService.cache = project.state.cache;
+  public recovery(project: Project) {
+    this.appStoreRepository.store.historyState.reduce('SET_HISTORY', { historyLines: project.state.history});
+    this.cache = project.state.cache;
   }
 
-  private static updateCanvas(ctx: CanvasRenderingContext2D, stateValue: IHistoryLine['stateValue']) {
-    const filter = new Filter(ctx);
+  private updateCanvas(ctx: CanvasRenderingContext2D, stateValue: IHistoryLine['stateValue']) {
+    const filter = new Filter(this.appConfig, ctx);
     filter.update(
       stateValue.tempImageData as ImageData,
       stateValue.position as IPosition

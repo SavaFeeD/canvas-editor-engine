@@ -13,23 +13,23 @@ export class EventAtom implements ControlEvent {
 }
 
 export default class EventService {
-  public static eventList: EventAtom[] = [];
+  public eventList: EventAtom[] = [];
 
-  public static subcribe(controlEvent: ControlEvent) {
+  public subcribe(controlEvent: ControlEvent) {
     const eventAtom: EventAtom = {
       id: new Guid4().generate(),
       ...controlEvent
     }
-    EventService.eventList.push(eventAtom);
+    this.eventList.push(eventAtom);
   }
   
-  public static dispatch(name: ControlEvent['name'], eventArgs?: any) {
-    const eventAtom = EventService.eventList.find((event) => event.name === name);
+  public dispatch(name: ControlEvent['name'], eventArgs?: any) {
+    const eventAtom = this.eventList.find((event) => event.name === name);
     eventAtom.action(eventArgs);
   }
 
-  public static applyEvents(baseElement: HTMLDivElement) {
-    EventService.eventList?.forEach((event) => {
+  public applyEvents(baseElement: HTMLDivElement) {
+    this.eventList?.forEach((event) => {
       baseElement.addEventListener(event.name, event.action);
     });
   }

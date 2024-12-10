@@ -16,14 +16,19 @@ import { Filter } from "../../utils/filter";
 import { Convert } from "../../utils/convert";
 import { range } from '../../utils/generation';
 import { ISize } from "../../types/general";
+import AppConfig from "../../config";
 
 
 export default class VagueFilter extends Filter {
   options: IImageOptions;
   filterList: TFilterMethod[] = ['pixel'];
 
-  constructor(ctx: CanvasRenderingContext2D, options: IImageOptions) {
-    super(ctx);
+  constructor(
+    appConfig: AppConfig,
+    ctx: CanvasRenderingContext2D,
+    options: IImageOptions
+  ) {
+    super(appConfig, ctx);
     this.options = options;
   }
 

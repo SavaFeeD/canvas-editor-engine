@@ -17,7 +17,9 @@ export class HistoryState implements StateService {
 
   get historyLines(): IHistoryState['historyLines'] { return this._historyLines; };
 
-  constructor() {
+  constructor(
+    private throughHistoryService: ThroughHistoryService,
+  ) {
     this.reset();
   }
 
@@ -27,11 +29,11 @@ export class HistoryState implements StateService {
     switch(name) {
       case 'SET_HISTORY':
         reducer.setHistoryLines(payload as IHistoryState);
-        ThroughHistoryService.clearCache();
+        this.throughHistoryService.clearCache();
         break;
       case 'UPDATE_HISTORY':
         reducer.updateHistoryLines(payload as IHistoryLine);
-        ThroughHistoryService.clearCache();
+        this.throughHistoryService.clearCache();
         break;
       case 'REDO':
         reducer.updateHistoryLines(payload as IHistoryLine);

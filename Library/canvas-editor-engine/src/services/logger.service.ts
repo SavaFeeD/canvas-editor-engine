@@ -2,46 +2,47 @@ import { ILog, ILogItem, ILogItemInfo } from "../types/log";
 import ComponentService from "./component.service";
 
 export default class LoggerService {
-  public static log: ILog<ComponentService, any, any> = {
+  public log: ILog<ComponentService, any, any> = {
     components: [],
     services: [],
     planed: [],
   };
 
-  public static get components() {
-    return LoggerService.getMethods('components');
+  public get components() {
+    return this.getMethods('components');
   };
 
-  public static get services() {
-    return LoggerService.getMethods('services');
+  public get services() {
+    return this.getMethods('services');
   };
 
-  public static get planed() {
-    return LoggerService.getMethods('planed');
+  public get planed() {
+    return this.getMethods('planed');
   };
 
-  private static getMethods(fields: keyof typeof LoggerService.log) {
+  private getMethods(fields: keyof typeof this.log) {
+    const proto = this;
     return {
       add<TLogPrototype>(logItem: ILogItem<TLogPrototype>) { 
-        LoggerService._add(fields, logItem);
+        proto._add(fields, logItem);
       },
-      get<TLogPrototype>(...args: Parameters<typeof LoggerService._get<TLogPrototype>>) {
-        LoggerService._get<TLogPrototype>(...args)
+      get<TLogPrototype>(...args: Parameters<typeof proto._get<TLogPrototype>>) {
+        proto._get<TLogPrototype>(...args);
       },
     };
   }
 
-  private static _add<TLogPrototype>(
-    field: keyof typeof LoggerService.log,
+  private _add<TLogPrototype>(
+    field: any, // keyof typeof this.log
     logItem: ILogItem<TLogPrototype>
   ): void {
-    LoggerService.log[field].push(logItem);
+    this.log[field].push(logItem);
   }
 
-  private static _get<TLogPrototype>(
-    field: keyof typeof LoggerService.log,
+  private _get<TLogPrototype>(
+    field: keyof typeof this.log,
     name: ILogItemInfo['name']
   ): ILogItem<TLogPrototype> {
-    return LoggerService.log[field].find((logItem) => logItem.info.name === name);
+    return this.log[field].find((logItem) => logItem.info.name === name);
   }
 }

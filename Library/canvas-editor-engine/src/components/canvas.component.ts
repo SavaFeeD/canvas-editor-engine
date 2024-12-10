@@ -6,92 +6,98 @@ import LoggerService from "../services/logger.service";
 import ToolLayerService from "../services/tool-layers.service";
 
 export default class CanvasComponent extends ComponentService {
-  private static template: string = `
+  constructor(
+    private appConfig: AppConfig,
+    private loggerService: LoggerService,
+    private toolLayerService: ToolLayerService
+  ) {
+    super();
+
+    this.loggerService.components.add({
+      info: {
+        name: 'canvas',
+        description: 'canvas component',
+      },
+      prototype: this,
+    });
+  };
+
+  private template: string = `
     <div id="event-listener"></div>
     <canvas id="sc-canvas"></canvas>
   `;
 
-  private static css: string = `
+  private css: string = `
     #event-listener {
       position: absolute;
-      z-index: ${ToolLayerService.getLayerIndex('normal')};
+      z-index: ${this.toolLayerService.getLayerIndex('normal')};
     }
   `;
 
-  public static eventListener: HTMLDivElement;
-  public static canvas: HTMLCanvasElement;
-  public static ctx: CanvasRenderingContext2D | null;
+  public eventListener: HTMLDivElement;
+  public canvas: HTMLCanvasElement;
+  public ctx: CanvasRenderingContext2D | null;
 
-  private static subscriptions: TSubscriptions = {
+  private subscriptions: TSubscriptions = {
     click: [],
     mousemove: [],
     mousedown: [],
     mouseup: [],
   };
 
-  private static _cursorStyle: ICursorStyle = {
+  private _cursorStyle: ICursorStyle = {
     before: null,
     current: 'default',
   };
 
-  static {
-    LoggerService.components.add({
-      info: {
-        name: 'canvas',
-        description: 'canvas component',
-      },
-      prototype: CanvasComponent,
-    });
-  };
+  public getComponent() {
+    const canvasTemplate = this.getTemplate(this.template);
+    const canvasStyle = this.getStyle(this.css);
 
-  public static getComponent() {
-    const canvasTemplate = CanvasComponent.getTemplate(CanvasComponent.template);
-    const canvasStyle = CanvasComponent.getStyle(CanvasComponent.css);
+    this.canvas = canvasTemplate.getElementsByTagName('canvas')[0];
+    this.canvas.width = this.appConfig.CANVAS_SIZE.width;
+    this.canvas.height = this.appConfig.CANVAS_SIZE.height;
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
 
-    CanvasComponent.canvas = canvasTemplate.getElementsByTagName('canvas')[0];
-    CanvasComponent.canvas.width = AppConfig.CANVAS_SIZE.width;
-    CanvasComponent.canvas.height = AppConfig.CANVAS_SIZE.height;
-    CanvasComponent.ctx = CanvasComponent.canvas.getContext("2d", { willReadFrequently: true });
-
-    CanvasComponent.eventListener = canvasTemplate.querySelector('#event-listener');
-    CanvasComponent.eventListener.style.width = AppConfig.CANVAS_SIZE.width + 'px';
-    CanvasComponent.eventListener.style.height = AppConfig.CANVAS_SIZE.height + 'px';
+    this.eventListener = canvasTemplate.querySelector('#event-listener');
+    this.eventListener.style.width = this.appConfig.CANVAS_SIZE.width + 'px';
+    this.eventListener.style.height = this.appConfig.CANVAS_SIZE.height + 'px';
 
     return { canvasTemplate, canvasStyle };
   }
 
-  public static getCanvasSelector(): string {
+  public getCanvasSelector(): string {
     return '#sc-canvas';
   }
 
-  public static set cursorStyle(styleName: TCursorStyleName | undefined | null) {
+  public set cursorStyle(styleName: TCursorStyleName | undefined | null) {
     if (!!styleName) {
-      CanvasComponent._cursorStyle.before = CanvasComponent._cursorStyle.current;
-      CanvasComponent._cursorStyle.current = styleName;
-      (CanvasComponent.eventListener.style.cursor as TCursorStyleName) = styleName;
+      this._cursorStyle.before = this._cursorStyle.current;
+      this._cursorStyle.current = styleName;
+      (this.eventListener.style.cursor as TCursorStyleName) = styleName;
     } else {
-      (CanvasComponent.eventListener.style.cursor as TCursorStyleName) = 'default';
+      (this.eventListener.style.cursor as TCursorStyleName) = 'default';
     }
   }
 
-  public static getCursorPosition(event: MouseEvent): ICursorPosition {
-    const rect = CanvasComponent.canvas.getBoundingClientRect();
+  public getCursorPosition(event: MouseEvent): ICursorPosition {
+    const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     return { x, y };
   }
 
-  public static subscribe(eventName: TSubscriptionTypes, action: TSubscribeAction) {
-    CanvasComponent.subscriptions[eventName].push(action);
+  public subscribe(eventName: TSubscriptionTypes, action: TSubscribeAction) {
+    this.subscriptions[eventName].push(action);
   }
 
-  public static simulateSubscriptions() {
-    const eventNames = Object.keys(CanvasComponent.subscriptions);
+  public simulateSubscriptions() {
+    const eventNames = Object.keys(this.subscriptions);
     eventNames.forEach((eventName: TSubscriptionTypes) => {
-      const actionsList = CanvasComponent.subscriptions[eventName];
+      const actionsList = this.subscriptions[eventName];
       if (!!actionsList.length) {
-        CanvasComponent.eventListener.addEventListener(eventName, (event: MouseEvent) => {
-          const cursorPosition = CanvasComponent.getCursorPosition(event);
+        this.eventListener.addEventListener(eventName, (event: MouseEvent) => {
+          const cursorPosition = this.getCursorPosition(event);
           actionsList.forEach((action) => {
             action(event, cursorPosition);
           });

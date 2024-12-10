@@ -1,6 +1,7 @@
 import { StateService } from "../services/store.service";
 import { IPosition, ISize } from "../types/general";
 import AppStore from "./store";
+import AppStoreRepository from "./storeRepository";
 
 export interface IImageState {
   position: IPosition;
@@ -35,7 +36,9 @@ export class ImageState implements StateService {
   get size(): IImageState['size'] { return this._size; };
   get tempImageData(): IImageState['tempImageData'] { return this._tempImageData; };
 
-  constructor() {
+  constructor(
+    private appStoreRepository: AppStoreRepository,
+  ) {
     this.reset();
   }
 
@@ -76,7 +79,7 @@ export class ImageState implements StateService {
       size: this._size,
       tempImageData: this._tempImageData,
     }
-    AppStore.store.historyState.reduce('UPDATE_HISTORY', {
+    this.appStoreRepository.store.historyState.reduce('UPDATE_HISTORY', {
       view: title,
       stateName: 'image',
       stateValue,

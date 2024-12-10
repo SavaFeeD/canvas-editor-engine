@@ -1,6 +1,8 @@
 import { StoreService } from "../services/store.service";
+import ThroughHistoryService from "../services/through-history.service";
 import { HistoryState } from "./history.state";
 import { ImageState } from "./image.state";
+import AppStoreRepository from "./storeRepository";
 
 export class Store implements StoreService {
   constructor(
@@ -15,18 +17,19 @@ export class Store implements StoreService {
 }
 
 export default class AppStore {
-  public static store: Store;
-  
-  static {
-    AppStore.store = new Store(
-      new ImageState(),
-      new HistoryState(),
+  constructor(
+    private throughHistoryService: ThroughHistoryService,
+    private appStoreRepository: AppStoreRepository,
+  ) {
+    this.appStoreRepository.store = new Store(
+      new ImageState(this.appStoreRepository),
+      new HistoryState(this.throughHistoryService),
     );
   }
 
-  public static subscribe(to: 'history', completeIt: (...args: any) => void) {
+  public subscribe(to: 'history', completeIt: (...args: any) => void) {
     if (to === 'history') {
-      AppStore.store.historyState.emerge(completeIt);
+      this.appStoreRepository.store.historyState.emerge(completeIt);
     }
   }
 }

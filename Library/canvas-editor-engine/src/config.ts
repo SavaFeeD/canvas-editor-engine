@@ -5,27 +5,20 @@ export interface ILayer {
   index: number;
 };
 
-export abstract class ConfigStore {
-  static _WEB_COMPONENT_TAG_NAME: string;
-  static _CANVAS_SIZE: ICanvasSize;
-  static _LAYERS: ILayer[];
-}
-
-export class ConfigFabric implements ConfigStore{
-  protected static _WEB_COMPONENT_TAG_NAME: string;
-  protected static _CANVAS_SIZE: ICanvasSize;
-  protected static _LAYERS: ILayer[];
+export class ConfigFabric {
+  protected _CANVAS_SIZE: ICanvasSize;
+  protected _LAYERS: ILayer[];
 }
 
 export default class AppConfig extends ConfigFabric {
 
-  static {
-    AppConfig._CANVAS_SIZE = {
+  constructor() {
+    super();
+    this._CANVAS_SIZE = {
       width: 300,
       height: 150,
     };
-    AppConfig._WEB_COMPONENT_TAG_NAME = 'canvas-editor-engine';
-    AppConfig._LAYERS = [
+    this._LAYERS = [
       {
         name: 'low',
         index: 1,
@@ -41,35 +34,25 @@ export default class AppConfig extends ConfigFabric {
     ];
   }
 
-  static get WEB_COMPONENT_TAG_NAME(): string {
-    return AppConfig._WEB_COMPONENT_TAG_NAME;
+  public get CANVAS_SIZE(): ICanvasSize {
+    return this._CANVAS_SIZE;
   }
 
-  static set WEB_COMPONENT_TAG_NAME(value: string | undefined) {
-    if (!!value && typeof value === 'string') {
-      AppConfig._WEB_COMPONENT_TAG_NAME = value;
-    }
-  }
-
-  static get CANVAS_SIZE(): ICanvasSize {
-    return AppConfig._CANVAS_SIZE;
-  }
-
-  static set CANVAS_SIZE(value: ICanvasSize | undefined) {
+  public set CANVAS_SIZE(value: ICanvasSize | undefined) {
     if (!!value && !!value?.width && !!value?.height) {
-      AppConfig._CANVAS_SIZE = value;
+      this._CANVAS_SIZE = value;
     } else {
       console.warn('CANVAS_SIZE denied');
     }
   }
 
-  static get LAYERS(): ILayer[] {
-    return AppConfig._LAYERS;
+  public get LAYERS(): ILayer[] {
+    return this._LAYERS;
   }
 
-  static set LAYERS(value: ILayer[]) {
+  public set LAYERS(value: ILayer[]) {
     if (!!value && !!value?.length) {
-      AppConfig._LAYERS = value;
+      this._LAYERS = value;
     }
   }
 }
