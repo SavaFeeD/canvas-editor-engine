@@ -56,7 +56,6 @@ export default class VagueFilter extends Filter {
 
   public pixel(imageData: ImageData, filterOptions: IFilterOptions) {
     const { quality } = filterOptions;
-    console.log('quality', quality);
 
     // expansion strategy
     const processedImageData = this.getQualityProcessedRemainder(imageData, +quality);
@@ -67,7 +66,6 @@ export default class VagueFilter extends Filter {
       width: processedImageData.width,
       height: processedImageData.height,
     };
-    console.log('imageSize', imageSize);
     this.setImageSize(imageSize);
     
     const { rowRGBABuff, buff } = this.getBuffCollection(processedImageData);

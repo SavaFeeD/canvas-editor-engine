@@ -12,9 +12,13 @@ export default class CropService {
     private excretionComponent: ExcretionComponent,
   ) {}
 
-  public setup() {
+  public activate() {
     this.excretionComponent.additionStyle = 'crop';
-  } 
+  }
+
+  public deactivate() {
+    this.excretionComponent.additionStyle = 'default';
+  }
 
   public crop(ctx: CanvasRenderingContext2D) {
     if (!!this.excretionComponent.excretionsCoords?.length === false) return;
@@ -37,6 +41,7 @@ export default class CropService {
     }, "Use crop");
   }
 
+  // TODO: refactor
   public viewCropButton() {
     const cropButtons = this.excretionComponent.excretionWrap.querySelectorAll('.crop-button');
     const lastCropButtonIndex = cropButtons.length - 1;

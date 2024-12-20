@@ -2,9 +2,9 @@
 
 Canvas 2D library use: [`typescript`] [`canvas`];
 
-For: [vue3] [native-js];
+For: [vue3] [native-js] [nuxt];
 
-# Vue3 example
+# Vue3 example [depricated]
 
 input:
 ```jsx

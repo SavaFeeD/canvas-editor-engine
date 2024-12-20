@@ -150,8 +150,6 @@ export default class PipetteComponent extends ComponentService {
       const state = this._pipetteState; 
       if (state === 'taken' || state === 'selected-color') {
 
-        console.log('pipetteState', state);
-
         if (state === 'taken') {
           this.setColorFromChoosenPixel(cursorPosition);
           this.setState('selected-color');

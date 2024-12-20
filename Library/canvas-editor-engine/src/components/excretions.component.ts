@@ -215,7 +215,6 @@ export default class ExcretionsComponent extends ComponentService {
   }
 
   public clearExcretionsCoords() {
-    console.log('clear!');
     this._excretions.forEach((excretion) => excretion.remove());
     this._excretions = [];
     this.excretionsCoords = [];
@@ -233,7 +232,6 @@ export default class ExcretionsComponent extends ComponentService {
     const coords = this.getTempCoords();
     this.excretionsCoords.push(coords);
     this._excretionActivity = 'end';
-    console.log('this.excretionsCoords', this.excretionsCoords);
   }
 
   private emmit() {

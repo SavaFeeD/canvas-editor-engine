@@ -67,7 +67,6 @@ export class Filter {
 
     clearedBuff.forEach((_, i) => tempImageData.data[i] = clearedBuff[i]);
 
-    console.log('cleared', cleared);
     return {
       imageData: tempImageData,
       size: tempSize
@@ -78,9 +77,10 @@ export class Filter {
     // case 1: Xcanvas -> Ximage && Ycanvas -> Yimage
     let leftIndex: number | undefined;
     let upIndex: number | undefined;
-    // @ts-ignore
-    for (const [iy, row] of RGBAMatrix.entries()) {
-      for (const [ix, rowItem] of row.entries()) {
+    for (let iy = 0; iy < RGBAMatrix.length; iy++) {
+      const row = RGBAMatrix[iy];
+      for (let ix = 0; ix < row.length; ix++) {
+        const rowItem = row[ix];
         const isNotEmpty = rowItem[E_RGBA.a] !== 0;
         if (isNotEmpty) {
           leftIndex = ix;
@@ -96,13 +96,14 @@ export class Filter {
     // case 2 reverse matrix: Ximage <- Xcanvas && Yimage <- Ycanvas
     let rightIndex: number | undefined;
     let downIndex: number | undefined;
-    // @ts-ignore
-    for (const [iy, row] of RGBAMatrix.reverse().entries()) {
-      for (const [ix, rowItem] of row.reverse().entries()) {
+    for (let iy = RGBAMatrix.length - 1; iy >= 0; iy--) {
+      const row = RGBAMatrix[iy];
+      for (let ix = row.length - 1; ix >= 0; ix--) {
+        const rowItem = row[ix];
         const isNotEmpty = rowItem[E_RGBA.a] !== 0;
         if (isNotEmpty) {
-          rightIndex = ix;
-          downIndex = iy;
+          rightIndex = row.length - 1 - ix;
+          downIndex = RGBAMatrix.length - 1 - iy;
           break;
         }
       }
@@ -121,7 +122,6 @@ export class Filter {
 
     return resultSize;
   }
-
   public getBuffCollection(imageData: ImageData) {
     
     const rowRGBABuff: TRGBABuff = this.getRowRGBABuff(imageData);

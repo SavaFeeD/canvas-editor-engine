@@ -82,8 +82,8 @@ export default class CanvasComponent extends ComponentService {
 
   public getCursorPosition(event: MouseEvent): ICursorPosition {
     const rect = this.canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const x = (event.clientX - rect.left) / this.appConfig.ZOOM;
+    const y = (event.clientY - rect.top) / this.appConfig.ZOOM;
     return { x, y };
   }
 

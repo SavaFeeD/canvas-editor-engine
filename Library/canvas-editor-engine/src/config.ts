@@ -8,6 +8,7 @@ export interface ILayer {
 export class ConfigFabric {
   protected _CANVAS_SIZE: ICanvasSize;
   protected _LAYERS: ILayer[];
+  protected _ZOOM: number;
 }
 
 export default class AppConfig extends ConfigFabric {
@@ -32,6 +33,7 @@ export default class AppConfig extends ConfigFabric {
         index: 3,
       }
     ];
+    this._ZOOM = 1;
   }
 
   public get CANVAS_SIZE(): ICanvasSize {
@@ -54,5 +56,13 @@ export default class AppConfig extends ConfigFabric {
     if (!!value && !!value?.length) {
       this._LAYERS = value;
     }
+  }
+
+  public get ZOOM(): number {
+    return this._ZOOM;
+  }
+
+  public set ZOOM(value: number) {
+    this._ZOOM = value;
   }
 }

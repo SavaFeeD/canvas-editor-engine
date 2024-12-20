@@ -26,6 +26,7 @@ export default class DrawService {
         y: 0,
       };
       const imageData = filter.copy(zeroPosition);
+      console.log(this);
       this.appStoreRepository.store.imageState.reduce({
         tempImageData: imageData,
         position: zeroPosition,
@@ -35,7 +36,6 @@ export default class DrawService {
   }
 
   public drawProject(ctx: CanvasRenderingContext2D, project: Project) {
-    // const { imageData, position, size } = project.state.current;
     const imageData = project.state.current.imageData as ImageData;
     const position = project.state.current.position as IImageOptions;
     const size = project.state.current.size as ISize;
@@ -59,11 +59,11 @@ export default class DrawService {
     }
     
     this.imageProcessor.vague(filterArgs, filterOptions)
-      .then(this.updateImageStateAfterVague)
+      .then((data) => this.updateImageStateAfterVague(data))
       .finally(() => this.eventService.dispatch('loading-end'));
   }
 
-  private updateImageStateAfterVague(data: IImageLoggingDataVague) {
+  public updateImageStateAfterVague(data: IImageLoggingDataVague) {
     const { imageData, position, size, quality } = data;
     this.appStoreRepository.store.imageState.reduce({
       tempImageData: imageData,
@@ -72,7 +72,7 @@ export default class DrawService {
     }, `[Filter Vague] quality: ${quality}`);
   }
 
-  private getFilterArgs(useStore: boolean, options: IDrawImageArgs) {
+  public getFilterArgs(useStore: boolean, options: IDrawImageArgs) {
     let filterArgs: IImageOptions;
     const store = this.appStoreRepository.store.imageState;
 
