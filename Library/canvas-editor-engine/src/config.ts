@@ -12,6 +12,7 @@ export class ConfigFabric {
 }
 
 export default class AppConfig extends ConfigFabric {
+  private _canvas: HTMLCanvasElement | null = null;
 
   constructor() {
     super();
@@ -36,6 +37,11 @@ export default class AppConfig extends ConfigFabric {
     this._ZOOM = 1;
   }
 
+  public bindCanvas(canvasElement: HTMLDivElement) {
+    const canvas = canvasElement.querySelector('canvas');
+    this._canvas = canvas;
+  }
+
   public get CANVAS_SIZE(): ICanvasSize {
     return this._CANVAS_SIZE;
   }
@@ -43,6 +49,10 @@ export default class AppConfig extends ConfigFabric {
   public set CANVAS_SIZE(value: ICanvasSize | undefined) {
     if (!!value && !!value?.width && !!value?.height) {
       this._CANVAS_SIZE = value;
+      if (!!this._canvas) {
+        this._canvas.width = value.width;
+        this._canvas.height = value.height;
+      }
     } else {
       console.warn('CANVAS_SIZE denied');
     }

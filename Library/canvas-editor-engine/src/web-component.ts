@@ -207,6 +207,7 @@ export default class WebComponent extends HTMLElement {
   }
 
   initial() {
+    this.appConfig.bindCanvas(this.canvasElement);
     return {
       editorElement: this.canvasElement,
       canvasSelector: this.canvasComponent.getCanvasSelector(),

@@ -32,4 +32,8 @@ export default class AppStore {
       this.appStoreRepository.store.historyState.emerge(completeIt);
     }
   }
+
+  public getHistoryLines() {
+    return this.appStoreRepository.store.historyState.historyLines;
+  }
 }

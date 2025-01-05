@@ -54,6 +54,8 @@ export default class CanvasComponent extends ComponentService {
     const canvasTemplate = this.getTemplate(this.template);
     const canvasStyle = this.getStyle(this.css);
 
+    canvasTemplate.style.display = 'flex';
+
     this.canvas = canvasTemplate.getElementsByTagName('canvas')[0];
     this.canvas.width = this.appConfig.CANVAS_SIZE.width;
     this.canvas.height = this.appConfig.CANVAS_SIZE.height;
