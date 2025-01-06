@@ -20,6 +20,7 @@ import ProjectsService from "./services/projects.service";
 import PullProjectService from "./services/pull-project.service";
 import DrawService from "./services/draw.service";
 import DownloadService from "./services/download.service";
+import ResizeService from "./services/serize.service";
 
 export class WebComponentWrapper {
   public baseElement: HTMLDivElement;
@@ -123,6 +124,7 @@ export default class WebComponent extends HTMLElement {
   loggerService: LoggerService;
   drawService: DrawService;
   downloadService: DownloadService;
+  resizeService: ResizeService;
 
   constructor() {
     super();
@@ -151,6 +153,7 @@ export default class WebComponent extends HTMLElement {
     this.toolService = new ToolService(this.canvasComponent);
     this.appStoreRepository = new AppStoreRepository();
     this.throughHistoryService = new ThroughHistoryService(this.appConfig, this.appStoreRepository);
+    this.resizeService = new ResizeService(this.appConfig, this.throughHistoryService);
     this.appStore = new AppStore(this.throughHistoryService, this.appStoreRepository);
     this.pullProjectService = new PullProjectService(this.throughHistoryService, this.appStoreRepository);
     this.drawService = new DrawService(
