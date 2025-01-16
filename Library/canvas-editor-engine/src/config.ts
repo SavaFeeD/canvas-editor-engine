@@ -1,18 +1,18 @@
 import { ICanvasSize } from "./types/canvas";
 
-export interface ILayer {
+export interface IConfigLayer {
   name: string;
   index: number;
 };
 
 export class ConfigFabric {
   protected _CANVAS_SIZE: ICanvasSize;
-  protected _LAYERS: ILayer[];
+  protected _LAYERS: IConfigLayer[];
   protected _ZOOM: number;
 }
 
 export default class AppConfig extends ConfigFabric {
-  private _canvas: HTMLCanvasElement | null = null;
+  public canvas: HTMLCanvasElement | null = null;
 
   constructor() {
     super();
@@ -38,8 +38,7 @@ export default class AppConfig extends ConfigFabric {
   }
 
   public bindCanvas(canvasElement: HTMLDivElement) {
-    const canvas = canvasElement.querySelector('canvas');
-    this._canvas = canvas;
+    this.canvas = canvasElement.querySelector('canvas');
   }
 
   public get CANVAS_SIZE(): ICanvasSize {
@@ -49,20 +48,20 @@ export default class AppConfig extends ConfigFabric {
   public set CANVAS_SIZE(value: ICanvasSize | undefined) {
     if (!!value && !!value?.width && !!value?.height) {
       this._CANVAS_SIZE = value;
-      if (!!this._canvas) {
-        this._canvas.width = value.width;
-        this._canvas.height = value.height;
+      if (!!this.canvas) {
+        this.canvas.width = value.width;
+        this.canvas.height = value.height;
       }
     } else {
       console.warn('CANVAS_SIZE denied');
     }
   }
 
-  public get LAYERS(): ILayer[] {
+  public get LAYERS(): IConfigLayer[] {
     return this._LAYERS;
   }
 
-  public set LAYERS(value: ILayer[]) {
+  public set LAYERS(value: IConfigLayer[]) {
     if (!!value && !!value?.length) {
       this._LAYERS = value;
     }

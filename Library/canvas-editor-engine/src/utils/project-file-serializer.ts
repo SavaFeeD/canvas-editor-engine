@@ -56,6 +56,7 @@ export class ProjectFileSerializer {
   }
 
   public saveProjects(projects: Project[]) {
+    // TODO: not sure if this works
     this.file.save(JSON.stringify(projects));
   }
 
