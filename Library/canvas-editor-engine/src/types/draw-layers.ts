@@ -13,4 +13,13 @@ export interface ILayerUpdate {
   name?: ILayer['name'],
 };
 
-export type TReducerNames = 'SET_LAYERS' | 'UPDATE_LAYER' | 'ADD_LAYER';
+export type TReducerNames = 'SET_LAYERS' | 'UPDATE_LAYER' | 'ADD_LAYER' | 'REMOVE_LAYER';
+
+export interface IUpdateLayerOptions {
+  to?: number;
+  direction?: 'up' | 'down';
+  addendum?: {
+    operation: 'add' | 'subtract' | 'multiplication' | 'division';
+    value: number
+  };
+};

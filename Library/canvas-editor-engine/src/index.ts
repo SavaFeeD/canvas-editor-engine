@@ -21,6 +21,7 @@ import EventService from "./services/event.service";
 import ThroughHistoryService from "./services/through-history.service";
 import ProjectsService from "./services/projects.service";
 import PullProjectService from "./services/pull-project.service"
+import DrawAccumulatorService from './services/draw-accumulator.service';
 
 import AppStore from "./store/store";
 import AppStoreRepository from "./store/storeRepository";
@@ -28,8 +29,7 @@ import AppStoreRepository from "./store/storeRepository";
 
 class CanvasEditorEngine {
   
-  constructor(
-  ) {}
+  constructor() {}
 
   public getInitial() {
     return { component: WebComponent };
@@ -88,6 +88,7 @@ export {
   ThroughHistoryService,
   ProjectsService,
   PullProjectService,
+  DrawAccumulatorService,
 
   // general
   StaticCanvasEditorEngine,

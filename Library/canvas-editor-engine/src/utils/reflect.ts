@@ -21,7 +21,10 @@ export const reflect = () => {
   const wrapperForTheName = {
     'HTMLElement': /** @this {!Object} */ function HTMLElement() {
       return Reflect.construct(
-          BuiltInHTMLElement, [], /** @type {!Function} */ (this.constructor));
+        BuiltInHTMLElement,
+        [],
+        /** @type {!Function} */ (this.constructor)
+      );
     }
   };
   // @ts-ignore

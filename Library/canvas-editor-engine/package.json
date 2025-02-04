@@ -1,6 +1,6 @@
 {
   "name": "canvas-editor-engine",
-  "version": "2.2.6",
+  "version": "2.3.43",
   "description": "CanvasEditorEngine library, use: [typescript] [canvas]",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node test/test.js",
+    "test": "jest",
     "build:ts": "tsc",
     "build": "rollup -c",
     "realise": "npm version patch && npm publish"
@@ -22,13 +22,15 @@
   "author": "SavaFeeD",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.7.4",
-    "typescript": "^5.7.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
-    "rollup": "^4.28.1"
+    "@types/node": "^22.7.4",
+    "babel-jest": "^29.7.0",
+    "rollup": "^4.28.1",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
+    "rollup-plugin-multi-input": "^1.5.0",
     "tslib": "^2.8.1"
   }
 }

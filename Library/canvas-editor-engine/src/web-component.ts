@@ -18,11 +18,12 @@ import ThroughHistoryService from "./services/through-history.service";
 import AppStoreRepository from "./store/storeRepository";
 import ProjectsService from "./services/projects.service";
 import PullProjectService from "./services/pull-project.service";
-import DrawService, { DrawAccumulator } from "./services/draw.service";
+import DrawService from "./services/draw.service";
 import DownloadService from "./services/download.service";
-import ResizeService from "./services/serize.service";
-import DrawLayersService from "./services/draw-leayers.service";
+import ResizeService from "./services/resize.service";
+import DrawLayersService from "./services/draw-layers.service";
 import { ILayer } from "./types/draw-layers";
+import DrawAccumulatorService from "./services/draw-accumulator.service";
 
 export class WebComponentWrapper {
   public baseElement: HTMLDivElement;
@@ -127,7 +128,7 @@ export default class WebComponent extends HTMLElement {
   drawService: DrawService;
   downloadService: DownloadService;
   resizeService: ResizeService;
-  drawAccumulator: DrawAccumulator;
+  drawAccumulatorService: DrawAccumulatorService;
   drawLayersService: DrawLayersService;
 
   constructor() {
@@ -166,7 +167,7 @@ export default class WebComponent extends HTMLElement {
       this.eventService
     );
     this.drawLayersService = new DrawLayersService(this.appStoreRepository);
-    this.drawAccumulator = new DrawAccumulator(
+    this.drawAccumulatorService = new DrawAccumulatorService(
       this.appConfig,
       this.appStoreRepository,
       this.eventService,
@@ -229,14 +230,10 @@ export default class WebComponent extends HTMLElement {
   }
 
   restoreJSONProjects(layerId: ILayer['id'], jsonProjects: string) {
-    // const canvas = this.canvasElement.querySelector('canvas');
-    // const ctx = canvas.getContext('2d');
-
     const projectProcessor = this.projectsService.on('File');
     const serializer = projectProcessor.getSerializerInstance(jsonProjects);
     const projects = serializer.getProjects();
-    this.drawAccumulator.add(layerId, 'project', projects[0]);
-    // this.drawService.drawProject(ctx, projects[0]);
+    this.drawAccumulatorService.add(layerId, 'project', projects[0], projects[0].state.current.size);
     this.throughHistoryService.recovery(projects[0]);
   }
 }

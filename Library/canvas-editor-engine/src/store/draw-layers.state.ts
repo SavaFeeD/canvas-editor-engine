@@ -37,6 +37,9 @@ export class DrawLayersState implements StateService {
       case 'ADD_LAYER':
         reducer.addLayer(payload as ILayer);
         break;
+      case 'REMOVE_LAYER':
+        reducer.removeLayer(payload as ILayer);
+        break;
     }
   }
 
@@ -87,6 +90,22 @@ class Reducer {
     if (!!payload) {
       this.state._layers.unshift(payload);
       isUpdate = true;
+    }
+
+    if (isUpdate && !!this.state._emergeCompleteIt) {
+      this.state._emergeCompleteIt(this.state._layers);
+    }
+  }
+
+  removeLayer(payload: ILayer) {
+    let isUpdate = false;
+
+    if (!!payload) {
+      const targetLayerIndex = (this.state._layers as IDrawLayersState['layers']).findIndex(layer => layer.id === payload.id);
+      if (targetLayerIndex != -1) {
+        this.state._layers.splice(targetLayerIndex, 1);
+        isUpdate = true;
+      }
     }
 
     if (isUpdate && !!this.state._emergeCompleteIt) {
