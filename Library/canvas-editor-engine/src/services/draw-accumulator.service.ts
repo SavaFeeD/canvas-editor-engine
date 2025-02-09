@@ -1,7 +1,8 @@
+import CanvasComponent from "../components/canvas.component";
 import AppConfig from "../config";
 import AppStoreRepository from "../store/storeRepository";
 import { ILayer, ILayerUpdate, IUpdateLayerOptions } from "../types/draw-layers";
-import { IPainter, ISmoothFilterOptions, TDrawType } from "../types/draw-service";
+import { ISmoothFilterOptions, TDrawType } from "../types/draw-service";
 import { ITempCanvasOptions } from "../types/temp-canvas";
 import Painter from "../utils/painter";
 import DrawLayersService from "./draw-layers.service";
@@ -55,6 +56,7 @@ export default class DrawAccumulatorService {
     private appStoreRepository: AppStoreRepository,
     private eventService: EventService,
     private drawLayersService: DrawLayersService,
+    private canvasComponent: CanvasComponent,
   ) {
     this.painters = createDynamicPainterStore();
   }
@@ -67,6 +69,7 @@ export default class DrawAccumulatorService {
   ) {
     const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const painter: Painter = new Painter(
+      this.canvasComponent,
       this.drawLayersService,
       {
         drawService: new DrawService(this.appConfig, this.appStoreRepository, this.eventService),
@@ -81,16 +84,22 @@ export default class DrawAccumulatorService {
       object: painter,
       update: this.update.bind(this),
     } as unknown as Painter);
-    console.log(this.painters);
     this.drawLayersService.addToLayer(layerId, painter);
     this.invokePainter(drawType, painter.drawService);
+    painter.subscribeOnCanvas(this.update.bind(this));
+  }
+
+  public getPainterById(painterId: string) {
+    const painter = this.painters.find(painter => painter.id === painterId);
+    if (!painter) throw new Error('Painter not found');
+    return painter;
   }
 
   public async removePainter(painterId: string) {
     const painter = this.painters.find(painter => painter.id === painterId);
     if (!painter) return console.warn('Painter not found');
 
-    const filteredPainters: IPainter[] = this.painters.filter(painter => painter.id !== painterId);
+    const filteredPainters: Painter[] = this.painters.filter(painter => painter.id !== painterId);
     this.painters = createDynamicPainterStore();
     const len = filteredPainters?.length;
     filteredPainters.forEach((painter, index) => {
@@ -113,16 +122,23 @@ export default class DrawAccumulatorService {
     this.update();
   }
 
-  public renamePainter(painterId: IPainter['id'], name: string) {
+  public changePainterOrder(painterId: Painter['id'], order: Painter['order']) {
     const painter = this.painters.find(painter => painter.id === painterId);
-    if (painter) {
-      painter.putPainter({ name });
-    } else {
-      console.error('Painter not found');
-    }
+    if (!painter) return console.error('Painter not found');
+    painter.putPainter({ order }).then(() => {
+      this.update();
+    });
   }
 
-  public async smoothFilter(painterId: IPainter['id'], smoothFilterOptions: ISmoothFilterOptions) {
+  public renamePainter(painterId: Painter['id'], name: Painter['name']) {
+    const painter = this.painters.find(painter => painter.id === painterId);
+    if (!painter) return console.error('Painter not found');
+    painter.putPainter({ name }).then(() => {
+      this.update();
+    });
+  }
+
+  public async smoothFilter(painterId: Painter['id'], smoothFilterOptions: ISmoothFilterOptions) {
     const { useStore, options, filterOptions } = smoothFilterOptions;
     const painter = this.painters.find(painter => painter.id === painterId);
     if (!painter) return;
@@ -166,7 +182,7 @@ export default class DrawAccumulatorService {
       });
   }
 
-  public updateLayerOrder(layerId: ILayer['id'], options: IUpdateLayerOptions) {
+  public changeLayerOrder(layerId: ILayer['id'], options: IUpdateLayerOptions) {
     this.drawLayersService.changeLayerOrder(layerId, options)
       .then((res: { status: 'error' | 'success', message?: string }) => {
         if (res.status === 'success') {
@@ -174,9 +190,7 @@ export default class DrawAccumulatorService {
         }
       })
       .catch((ex: { status: 'error' | 'success', message?: string }) => {
-        if (ex.status === 'error') {
-          console.warn(ex.message);
-        }
+        console.warn(ex.message);
       });
   }
 

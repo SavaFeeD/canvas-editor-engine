@@ -172,6 +172,7 @@ export default class WebComponent extends HTMLElement {
       this.appStoreRepository,
       this.eventService,
       this.drawLayersService,
+      this.canvasComponent,
     );
     this.downloadService = new DownloadService(this.canvasComponent);
 

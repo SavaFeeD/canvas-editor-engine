@@ -1,6 +1,5 @@
 import AppStoreRepository from "../store/storeRepository";
 import { ILayer, ILayerUpdate, IUpdateLayerOptions } from "../types/draw-layers";
-import { IPainter } from "../types/draw-service";
 import Painter from "../utils/painter";
 
 export default class DrawLayersService {
@@ -12,7 +11,7 @@ export default class DrawLayersService {
     this.addLayer({ layerName: 'Base Layer' });
   }
 
-  public addLayer(layerOptions?: { layerName?: string, painter?: IPainter }): ILayer {
+  public addLayer(layerOptions?: { layerName?: string, painter?: Painter }): ILayer {
     const layerName = layerOptions?.layerName;
     const painter = layerOptions?.painter;
     const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -50,7 +49,13 @@ export default class DrawLayersService {
     return this.layerList.find((layer) => layer.id === layerId);
   }
 
-  public addToLayer(id: ILayer['id'], painter: IPainter) {
+  public getLayerByPainterId(painterId: Painter['id']) {
+    return this.layerList.find((layer) => {
+      return layer.painters.find((painter) => painter.id === painterId);
+    });
+  }
+
+  public addToLayer(id: ILayer['id'], painter: Painter) {
     const layerIndex = this.layerList.findIndex((layer) => layer.id === id);
     if (layerIndex === -1) return;
     const layer = this.layerList[layerIndex];
@@ -78,7 +83,7 @@ export default class DrawLayersService {
     });
   }
 
-  public removePainter(id: IPainter['id']) {
+  public removePainter(id: Painter['id']) {
     const layerIndex = this.layerList.findIndex((layer) => {
       return layer.painters.find((painter) => painter.id === id);
     });
@@ -110,28 +115,47 @@ export default class DrawLayersService {
     });
   }
 
-  public async changeLayerOrder(id: ILayer['id'], options: IUpdateLayerOptions) {
+  /**
+   * options steps:
+   * 1. to (optional)
+   * 2. direction (optional)
+   * 3. addendum (optional)
+   * @param id ILayer['id']
+   * @param options IUpdateLayerOptions
+   * @param noReplayseable (optional) If true, the operation will not use the layer being replaceable ([0, 1, 2, 3] -> [0, 2*, 2, 3] -> [0, 1, 2*, 3])
+   * @returns promise { status: 'success' | 'error', message: string }
+   */
+  public async changeLayerOrder(id: ILayer['id'], options: IUpdateLayerOptions, noReplayseable?: boolean) {
     return new Promise((resolve, reject) => {
       const layerIndex = this.layerList.findIndex((layer) => layer.id === id);
       if (layerIndex === -1) return reject({ status: 'error', message: 'Layer not found' });
       const layer = this.layerList[layerIndex];
       
+      let newOrder = layer.order;
+
       if (options?.to) {
-        layer.order = options.to;
+        newOrder = options.to;
       }
 
       if (options?.direction) {
-        layer.order = (() => {
-          if (options.direction === 'up') {
-            return layer.order - 1;
-          }
-          else if (options.direction === 'down') {
-            return layer.order + 1;
-          }
-          else {
-            return layer.order;
-          }
-        })();
+        switch (options.direction) {
+          case 'up':
+            newOrder = layer.order + 1;
+            break;
+          case 'down':
+            newOrder = layer.order - 1;
+            break;
+          case 'front':
+            let mostMax = 0;
+            this.layerList.forEach((l) => (l.order > mostMax) ? mostMax = l.order : null);
+            newOrder = mostMax;
+            break;
+          case 'back':
+            let mostMin = Infinity;
+            this.layerList.forEach((l) => (l.order < mostMin) ? mostMin = l.order : null);
+            newOrder = mostMin;
+            break;
+        }
       }
 
       if (options?.addendum) {
@@ -139,21 +163,60 @@ export default class DrawLayersService {
         const operand = options.addendum.value;
 
         if (operation === 'add') {
-          layer.order = layer.order + operand;
+          newOrder = layer.order + operand;
         }
         else if (operation === 'subtract') {
-          layer.order = layer.order - operand;
+          newOrder = layer.order - operand;
         }
         else if (operation === 'multiplication') {
-          layer.order = layer.order * operand;
+          newOrder = layer.order * operand;
         }
         else if (operation === 'division') {
-          layer.order = layer.order / operand;
+          newOrder = layer.order / operand;
         }
       }
 
-      this.layerList[layerIndex] = layer;
-      this.appStoreRepository.store.drawLayersState.reduce('UPDATE_LAYER', layer);
+      if (!noReplayseable) {
+        const replaceableIndex = this.layerList.findIndex((layer) => layer.order === newOrder);
+
+        if (replaceableIndex === layerIndex) return reject({ status: 'error', message: 'Layer order equals to replaceable layer order' });
+        if (replaceableIndex === -1) return reject({ status: 'error', message: 'Replaceable layer not found' });
+
+        this.layerList.sort((a, b) => a.order - b.order);
+
+        const layerIdx = this.layerList.findIndex((layer) => layer.id === id);
+        const replaceableIdx = this.layerList.findIndex((layer) => layer.order === newOrder);
+
+        if (this.layerList[layerIdx].order < newOrder) {
+          this.layerList = this.layerList.map((item, idx) => {
+            if (idx > layerIdx && idx <= replaceableIdx) {
+              item.order -= 1;
+            }
+            return item;
+          }); 
+        } else {
+          this.layerList = this.layerList.map((item, idx) => {
+            if (idx >= replaceableIdx && idx < layerIdx) {
+              item.order += 1;
+            }
+            return item;
+          }); 
+        }
+
+        this.layerList.forEach((item, idx) => {
+          if (idx >= layerIdx && idx <= replaceableIdx) {
+            this.appStoreRepository.store.drawLayersState.reduce('UPDATE_LAYER', item);
+          }
+        });
+
+        this.layerList[layerIdx].order = newOrder;      
+        this.appStoreRepository.store.drawLayersState.reduce('UPDATE_LAYER', layer);
+      } else {
+        layer.order = newOrder;
+        this.layerList[layerIndex] = layer;      
+        this.appStoreRepository.store.drawLayersState.reduce('UPDATE_LAYER', layer);
+      }
+
       resolve({ status: 'success', message: 'Layer order updated' });
     });
   }

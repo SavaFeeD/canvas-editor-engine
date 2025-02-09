@@ -1,8 +1,8 @@
-import { IPainter } from "./draw-service";
+import Painter from "../utils/painter";
 
 export interface ILayer {
   id: string,
-  painters: IPainter[],
+  painters: Painter[],
   order: number,
   name: string, 
 };
@@ -17,7 +17,7 @@ export type TReducerNames = 'SET_LAYERS' | 'UPDATE_LAYER' | 'ADD_LAYER' | 'REMOV
 
 export interface IUpdateLayerOptions {
   to?: number;
-  direction?: 'up' | 'down';
+  direction?: 'up' | 'down' | 'front' | 'back';
   addendum?: {
     operation: 'add' | 'subtract' | 'multiplication' | 'division';
     value: number
